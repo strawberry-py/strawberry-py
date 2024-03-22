@@ -12,7 +12,7 @@ Let's say you want to make changes to our `Fun <https://github.com/strawberry-py
 
 You have two options to install the forked repository. 
 Option one is using **repository install** command, which would place it into the ``modules/`` directory.
-Option two is forking the repository manually using ``git`` commands.
+Option two is cloning the repository manually using ``git`` commands.
 
 
 .. code-block:: bash
