@@ -9,7 +9,7 @@ General information
 
 	If you want to deploy your bot instance, take a look at :ref:`containers`, :ref:`direct` or :ref:`k8s`.
 
-To set up the bot, we recommend using Docker as it's the easiest way.
+To set up the bot, we recommend using Docker :ref:`containers` as it's the easiest way.
 
 
 .. _general_token:
