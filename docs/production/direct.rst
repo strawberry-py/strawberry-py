@@ -47,6 +47,11 @@ On Ubuntu, this can be set via the file ``/etc/network/interfaces``:
 	Alter the addresses so they match your network.
 	You can find interface and mask information by running ``ip a``.
 
+.. warning::
+
+	If you are connected over SSH, you'll lose connection and lock yourself up.
+	Consider restarting the server instead.
+
 You can apply the settings by running
 
 .. code-block:: bash
@@ -54,10 +59,7 @@ You can apply the settings by running
 	ifdown eth0
 	ifup eth0
 
-.. warning::
 
-	If you are connected over SSH, you'll lose connection and lock yourself up.
-	Consider restarting the server instead.
 
 .. note::
 
