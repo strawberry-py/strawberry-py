@@ -34,3 +34,12 @@ Open your ``.env`` file and put the token in.
 You can invite the bot to your server by going to the **OAuth2/URL Generator page**, selecting **bot** and **applications.commands** scopes and **Administrator** bot permission to generate a URL.
 Open it in new tab.
 You can invite the bot only to the servers where you have Administrator privileges.
+
+.. _installing_module:
+
+Installing modules
+-----------------
+
+Installing modules is done through the ``repository`` command of the bot instance or by manually clonning the module as described in :ref:`developing-modules`.
+
+To get more info of the repository command, please refer to ``help repo`` command of the bot instance.
