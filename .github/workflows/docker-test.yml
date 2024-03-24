@@ -8,6 +8,12 @@ on:
       - "**/Dockerfile"
       - "**/docker-test.yml"
       - "**/docker-compose.yml"
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - "**/Dockerfile"
+      - "**/docker-test.yml"
+      - "**/docker-compose.yml"
 
 jobs:
   build:
