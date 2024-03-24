@@ -1,14 +1,19 @@
+.. _developing-modules:
+
 Developing modules
 ==================
 
 .. note::
 
 	Always start from ``main``, but never commit to ``main``.
+    You can also start from the fresh branch synchronized with ``main``.
 
 Let's say you want to make changes to our `Fun <https://github.com/strawberry-py/strawberry-fun>`_ repository.
 
-If you were to use **repository install** command, the bot would place it into the ``modules/`` directory.
-That's where you have to clone your fork as well, so the bot can find and load it.
+You have two options to install the forked repository. 
+Option one is using **repository install** command, which would place it into the ``modules/`` directory.
+Option two is cloning the repository manually using ``git`` commands inside ``modules/``.
+
 
 .. code-block:: bash
 

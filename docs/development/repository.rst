@@ -53,7 +53,7 @@ Resource files
 The module
 ----------
 
-For each module that has been specified in the init's ``__all__`` variable there must exist a directory with the same name at the root of the repository. And each module has to have a ``module.py`` file inside of its directory.
+For each module that has been specified in the ``repo.conf`` file there must exist a directory with the same name at the root of the repository. And each module has to have a ``module.py`` file inside of its directory.
 
 In our case, we only have one module specified, so we have to create a file ``bistro/module.py``. This file has to contain the class inheriting from discord's Cog and the ``setup()`` function to load the module.
 
@@ -87,7 +87,7 @@ Module database
 
 When the module uses database in any way, the SQLAlchemy tables MUST be placed in ``<module>/database.py``.
 
-How the table class is named is up to you; the ``__tablename__`` property SHOULD be named ``<repository>_<module>_<functionality>``. Each entry SHOULD have primary index column named ``idx``. Each table SHOULD have a ``guild_id`` column, unless you have reason not to do otherwise -- so the data from multiple guilds don't clash together.
+How the table class is named is up to you; the ``__tablename__`` property SHOULD be named ``<repository>_<module>_<functionality>``. Each entry SHOULD have primary index column named ``idx`` (can be omitted if there's available better primary key). Each table SHOULD have a ``guild_id`` column, unless you have reason not to do otherwise -- so the data from multiple guilds don't clash together.
 
 Channel column SHOULD be named ``channel_id``, message column SHOULD be named ``message_id``, user/member column SHOULD be named ``user_id`` -- unless there is a situation where this is not applicable (e.g. two user colums).
 
@@ -136,7 +136,7 @@ An example database file ``bistro/database.py`` may look like this:
             return query
 
         @classmethod
-        def remocls, ve(guild_id: int, name: str) -> int:
+        def remove(guild_id: int, name: str) -> int:
             query = session.query(cls).filter_by(
                 guild_id=guild_id,
                 name=name,
@@ -170,4 +170,6 @@ Please note that this may be changed in the future and some strawberry.py versio
 Load module
 -----------
 
-For import and load of the custom modules follow `User documentation <https://strawberry-py.github.io/docs/en/module-installation.html>`_. The user documentation expected that module is available as git repository and everything required in :ref:`how_to_create_repo` is fulfilled.
+The user documentation expects that module is available as git repository and everything required in :ref:`how_to_create_repo` is fulfilled.
+
+Then you can load the module as described in :ref:`installing_module`.

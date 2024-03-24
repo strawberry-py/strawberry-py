@@ -6,7 +6,7 @@ Containers
 Containers allow running the bot independent of the host environment. 
 This makes things easier and containers more portable.
 
-It is possible to use containers for development as well. 
+It is possible (and recommended) to use containers for development as well. 
 Just make sure you have fetched the source code and skip :ref:`containers_no_local_repo`.
 
 .. _containers_download:
@@ -64,6 +64,48 @@ And add a new volume to end of the file:
 	  postgres_data:
 	  strawberry_data:
 
+
+.. _environment_file:
+
+Environment file
+----------------
+
+The file called ``.env`` (that's right, just these four characters, nothing more) holds information strawberry.py needs in order to start.
+
+When you clone your repository, this file does not exist, you have to copy the example file first:
+
+.. code-block:: bash
+
+	cp default.docker.env .env
+
+You'll get content like this:
+
+.. code-block:: bash
+
+	DB_STRING=
+	TOKEN=
+
+After each ``=`` you must add appropriate value.
+
+The environment variables are described bellow.
+
+
+.. _containers_token:
+
+Discord bot token
+-----------------
+
+See :ref:`general_token` in chapter General Bot Information.
+
+
+.. _instance_name:
+
+Instance name
+-----------------
+
+This variable is used to (partially) set up container names to be able to distinguish
+the instances in multi-instance enviroment.
+
 .. _containers_database:
 
 Database
@@ -90,14 +132,6 @@ To restore a backup, point ``$BACKUPFILE`` to the path of your backup and restor
 	psql --username=postgres --dbname=postgres -W
 
 
-.. _containers_token:
-
-Discord bot token
------------------
-
-See :ref:`general_token` in chapter General Bot Information.
-
-
 .. _containers_env:
 
 Other environment variables
@@ -111,9 +145,9 @@ The following list explains some of them:
 * ``BOT_EXTRA_PACKAGES=``  - any additional ``apt`` packages that need to be installed inside the bot container
 * ``BACKUP_SCHEDULE=@every 3h00m00s``  - backup schedule for the database (runs every 3 hours by default)
 
-.. _docker_installation:
+.. _docker_installation_linux:
 
-Docker Installation
+Docker Installation - LINUX
 -------------------
 
 The first step is installing the docker:
@@ -130,27 +164,39 @@ It will probably be neccesary to add the user to the Docker group (this will tak
 
 For the next command you will probably need to log out and back in to load the group change.
 
+.. _docker_installation_windows:
 
-.. _podman_installation:
+Docker Installation - WINDOWS
+-----------------------------
+.. warning::
+	This tutorial covers the installation on Windows 10 Build 2004 or later and should be compatible
+	with Windows 11 as well.
 
-Podman Installation
--------------------
 
-.. note::
-	If you already installed docker you can skip this part
+In this tutorial, we will be working with Docker Desktop, which is free for non-commercial usage. 
+If you plan on deploying the bot in commercial environment, consider using Rancher Desktop.
 
-The first step is installing the podman, podman-docker and docker-compose:
+As it's recommended to use Docker Desktop with WSL2 backend (instead of HyperV), 
+this tutorial will cover the WSL2 installation as well.
 
-.. code-block:: bash
+We recommend creating ``.wslconfig`` file in your ``userprofile`` folder to enable ``sparseVhd`` option.
+This will automatically shrink virtual hard drives of the WSL2. This function is supported since September 2023 update.
+The file should contain this section:
 
-	sudo apt install podman podman-docker docker-compose
+.. codeblock:: 
 
-Start the Podman system service:
+	[experimental]
+	sparseVhd=true
 
-.. code-block:: bash
+If you don't have WSL2 installed, you need to run following command in ``cmd`` as Administrator.
 
-	sudo systemctl enable podman.socket --now
+.. codeblock::
+	
+	wsl --install
 
+When WSL2 is installed, follow the official tutorial on how to 	`Install Docker Desktop on Windows <https://docs.docker.com/desktop/install/windows-install/>`_.
+
+If the installation is successful, you should be able to run ``docker --version`` command.
 
 .. _containers_start:
 
@@ -160,14 +206,20 @@ Start the stack
 .. note::
 	Make sure you are in the right directory (the one where ``.env`` and ``docker-compose.yml`` files are) 
 
-.. warning::
-	If you're using Podman, you will need to run these commands with sudo.
+Build the image from the source (not necessary when running without local source code.):
 
-Create the docker-compose stack:
+.. code-block:: bash
+
+	docker-compose build
+
+Run the docker instance (as background service):
 
 .. code-block:: bash
 
 	docker-compose up --detach
+
+If you want to run the bot in foreground (e.g. for testing, development or debugging purposes),
+you can just remove the ``--detach`` parameter.
 
 The above command will pull the necessary container images and start the stack. 
 The bot will take some time to actually start responding,

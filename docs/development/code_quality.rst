@@ -1,3 +1,4 @@
+.. _code_quality:
 Code quality
 ============
 
@@ -9,7 +10,7 @@ Your code has to pass the Github Actions CI before it can be merged. You can pre
 
    pre-commit install
 
-The code will be tested everytime you create new commit, by manually by running
+The code will be tested everytime you create new commit, by manually running
 
 .. code-block::
 
@@ -17,3 +18,5 @@ The code will be tested everytime you create new commit, by manually by running
    pytest
 
 Every pull request has to be accepted by at least one of the core developers.
+
+PIP module pre-commit should be always included in requirements-dev.txt.

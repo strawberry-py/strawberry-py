@@ -31,7 +31,13 @@ All the imports MUST be at the top of the file (flake8 won't let you). For the s
 	_ = i18n.Translator(__file__).translate
 
 	class MyModule(commands.Cog):
+	
+		def __init__(self, bot):
+			self.bot = bot
 	    ...
+
+	async def setup(bot) -> None:
+    	await bot.add_cog(MyModule(bot))
 
 E.g. ``__future__``, Python libraries, 3rd party libraries, discord imports, strawberry.py imports; all separated with one empty line.
 

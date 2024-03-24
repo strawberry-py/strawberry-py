@@ -11,7 +11,7 @@ Consult your favourite search engine in case of problems.
 
 .. note::
 
-	You will need ``sudo`` privileges on your server.
+	You will need ``sudo`` privileges on your server to change the configuration and install packages.
 
 
 .. _direct_system:
@@ -47,6 +47,11 @@ On Ubuntu, this can be set via the file ``/etc/network/interfaces``:
 	Alter the addresses so they match your network.
 	You can find interface and mask information by running ``ip a``.
 
+.. warning::
+
+	If you are connected over SSH, you'll lose connection and lock yourself up.
+	Consider restarting the server instead.
+
 You can apply the settings by running
 
 .. code-block:: bash
@@ -54,10 +59,7 @@ You can apply the settings by running
 	ifdown eth0
 	ifup eth0
 
-.. warning::
 
-	If you are connected over SSH, you'll lose connection and lock yourself up.
-	Consider restarting the server instead.
 
 .. note::
 
@@ -129,7 +131,7 @@ You can pick whatever name you want, we'll be using ``discord``.
 	EOF
 	echo "source .profile" > .bashrc
 
-If you want to follow the least-privilege rule, you can allow the ``discord`` user to run some privileged commands (for restarting the bot), but not others (like rebooting the system). If you'll be using ``systemd`` to manage the bot (read :ref:`the the section below <direct_systemd>` to see the setup), you can run ``visudo`` and enter the following:
+If you want to follow the least-privilege rule, you can allow the ``discord`` user to run some privileged commands (for restarting the bot), but not others (like rebooting the system). If you'll be using ``systemd`` to manage the bot (read :ref:`the the section below <direct_systemd>`_ to see the setup), you can run ``visudo`` and enter the following:
 
 .. code-block::
 
@@ -213,7 +215,98 @@ It will open an interactive console; you can run ``exit`` to quit.
 Downloading the code
 --------------------
 
-See :ref:`general_download`, :ref:`general_env`, :ref:`general_venv` in chapter General Bot Information.
+Use ``git`` to download the source code:
+
+.. code-block:: bash
+
+	git clone git@github.com:strawberry-py/strawberry-py.git strawberry
+	cd strawberry
+
+To update the bot later, run
+
+.. code-block:: bash
+
+	git pull
+
+
+.. _direct_env:
+
+Environment file
+----------------
+
+The file called ``.env`` (that's right, just these four characters, nothing more) holds information strawberry.py needs in order to start.
+
+When you clone your repository, this file does not exist, you have to copy the example file first:
+
+.. code-block:: bash
+
+	cp default.env .env
+
+You'll get content like this:
+
+.. code-block:: bash
+
+	DB_STRING=
+	TOKEN=
+
+After each ``=`` you must add appropriate value.
+For ``TOKEN``, see the section :ref:`general_token` below.
+For ``DB_STRING``, see the manual for installation that applies to your setup.
+
+.. _direct_venv:
+
+Virtual environment
+-------------------
+To prevent clashes between libraries on the system, especially when running multiple bot instances,
+it's recommended to set up virtual environment.
+
+Virtual environment makes keeping different Python library versions on the same system possible.
+
+.. _direct_venv_setup:
+
+venv setup
+^^^^^^^^^^
+
+You may need to install the virtual environment package first:
+
+.. code-block:: bash
+
+	sudo apt install python3-venv
+
+Once available on your system, you can run
+
+.. code-block:: bash
+
+	python3 -m venv .venv
+
+to set up the virtual environment in current working directory.
+
+This only has to be done once, then it is set up forever.
+If you install newer version of Python (e.g. from 3.9 to 3.10), you may need to remove the ``.venv/`` directory and perform the setup again.
+
+
+.. _direct_venv_usage:
+
+venv usage
+^^^^^^^^^^
+
+The following step has to be performed every time you want to run the bot.
+
+.. code-block:: bash
+
+	source .venv/bin/activate
+
+Once activated, you can install packages as you want, they will be contained in this separate directory.
+
+To exit the environment, run
+
+.. code-block:: bash
+
+	deactivate
+
+
+See installation manuals for details on what to do once you are in virtual environment.
+
 
 Once you are in virtual environment, you can install required libraries:
 
@@ -228,8 +321,11 @@ This can be done by running
 .. include:: ../_snippets/_source_env.rst
 
 .. note::
+	To make sure that the variables from ``.env``` file are always loaded, you can do this trick.
+	Open the activate script (the ``.venv/bin/activate`` file) and insert the code above at the end of the file.
 
-	See :ref:`general_venv_tip` in ``venv``'s section in chapter General Bot Information to learn how to make this automatically.
+	This way the variables will be set whenever you enter the virtual environment with the ``source .venv/bin/activate`` command, and you won't have to run the ``source .env`` manually.
+
 
 .. _direct_token:
 
@@ -237,7 +333,6 @@ Discord bot token
 -----------------
 
 See :ref:`general_token` in chapter General Bot Information.
-
 
 
 .. _direct_systemd:
