@@ -40,6 +40,6 @@ You can invite the bot only to the servers where you have Administrator privileg
 Installing modules
 -----------------
 
-Installing modules is done through the ``repository`` command of the bot instance or by manually clonning the module as described in :ref:`developing-modules`.
+Installing modules is done through the ``repository`` command of the bot instance or by manually cloning the module as described in :ref:`developing-modules`.
 
-To get more info of the repository command, please refer to ``help repo`` command of the bot instance.
+To get more info about the repository command, please refer to ``help repo`` command of the bot instance.

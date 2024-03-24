@@ -170,6 +170,6 @@ Please note that this may be changed in the future and some strawberry.py versio
 Load module
 -----------
 
-The user documentation expected that module is available as git repository and everything required in :ref:`how_to_create_repo` is fulfilled.
+The user documentation expects that module is available as git repository and everything required in :ref:`how_to_create_repo` is fulfilled.
 
-Then you can load the module as described in :ref:`installing_module`
+Then you can load the module as described in :ref:`installing_module`.

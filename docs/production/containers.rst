@@ -173,7 +173,7 @@ Docker Installation - WINDOWS
 	with Windows 11 as well.
 
 
-In this tutorial we will be working with Docker Desktop, which is free for non-commercial usage. 
+In this tutorial, we will be working with Docker Desktop, which is free for non-commercial usage. 
 If you plan on deploying the bot in commercial environment, consider using Rancher Desktop.
 
 As it's recommended to use Docker Desktop with WSL2 backend (instead of HyperV), 
@@ -188,7 +188,7 @@ The file should contain this section:
 	[experimental]
 	sparseVhd=true
 
-If you don't have WSL2 installend, you must run following command in ``cmd`` as Administrator.
+If you don't have WSL2 installed, you need to run following command in ``cmd`` as Administrator.
 
 .. codeblock::
 	
