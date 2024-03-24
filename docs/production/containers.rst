@@ -194,7 +194,7 @@ If you don't have WSL2 installend, you must run following command in ``cmd`` as 
 	
 	wsl --install
 
-When WSL2 is installed, follow the official tutorial on how to 	`Install Docker Desktop on Windows <https://docs.docker.com/desktop/install/windows-install/>`.
+When WSL2 is installed, follow the official tutorial on how to 	`Install Docker Desktop on Windows <https://docs.docker.com/desktop/install/windows-install/>`_.
 
 If the installation is successful, you should be able to run ``docker --version`` command.
 

@@ -50,7 +50,7 @@ Install GIT
 First thing you'll need is ``git``.
 It may be on your system already.
 
-Please follow the official tutorial for `Installing GIT <https://git-scm.com/book/en/v2/Getting-Started-Installing-Git>` on your OS.
+Please follow the official tutorial for `Installing GIT <https://git-scm.com/book/en/v2/Getting-Started-Installing-Git>`_ on your OS.
 
 .. _devel_system_pre_setup_python:
 
@@ -66,11 +66,11 @@ For Linux, we'd recommend using your system package manager (e.h. `apt`) to inst
 	apt install \
 	    python3 python3-dev python3-pip python3-venv python3-setuptools
 
-For Windows and MacOS, Python can be installed from `Official site <https://www.python.org/downloads/>`.
+For Windows and MacOS, Python can be installed from `Official site <https://www.python.org/downloads/>`_.
 
 To simplify few things on Windows, we'd recommend to run the installer as administrator and select ``Customize instalation`` during setup to be able to install Python for all users.
 
-If you'd like to use multiple Python versions at once, we might recommend `pyenv <https://github.com/pyenv/pyenv>` for Unix based systems or `pyenv-win <https://github.com/pyenv-win/pyenv-win>` for Windows
+If you'd like to use multiple Python versions at once, we might recommend `pyenv <https://github.com/pyenv/pyenv>`_ for Unix based systems or `pyenv-win <https://github.com/pyenv-win/pyenv-win>` for Windows
 
 .. _devel_code_setup:
 
@@ -102,7 +102,7 @@ We have two options with the database. We can either use PostgreSQL or SQLite.
 
 When working with databases, it's always good for testing purposes to test out the new code on both of them, as soem features might not be available for one of them.
 
-For the start, we'd recommend using SQLite, because it's simple to access - the data file can be easily opened in tools like `SQLite Browser <https://sqlitebrowser.org/>`.
+For the start, we'd recommend using SQLite, because it's simple to access - the data file can be easily opened in tools like `SQLite Browser <https://sqlitebrowser.org/>`_.
 The second argument for SQLite is also the fact that wiping the DB means just deleting ``strawberry.db`` file.
 Also, in case of :ref:`direct` it's easier to set up SQLite than PostgreSQL, which does not matter in case of :ref:`direct` setup, which is recommended.
 

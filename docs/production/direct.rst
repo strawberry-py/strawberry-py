@@ -131,7 +131,7 @@ You can pick whatever name you want, we'll be using ``discord``.
 	EOF
 	echo "source .profile" > .bashrc
 
-If you want to follow the least-privilege rule, you can allow the ``discord`` user to run some privileged commands (for restarting the bot), but not others (like rebooting the system). If you'll be using ``systemd`` to manage the bot (read :ref:`the the section below <direct_systemd>` to see the setup), you can run ``visudo`` and enter the following:
+If you want to follow the least-privilege rule, you can allow the ``discord`` user to run some privileged commands (for restarting the bot), but not others (like rebooting the system). If you'll be using ``systemd`` to manage the bot (read :ref:`the the section below <direct_systemd>`_ to see the setup), you can run ``visudo`` and enter the following:
 
 .. code-block::
 
