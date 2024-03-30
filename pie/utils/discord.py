@@ -46,6 +46,26 @@ async def get_message(
         return None
 
 
+async def get_message_from_url(bot: commands.Bot, message_url: str):
+    """Get message.
+
+    Extracts Guild, Channel and Message ID from URL
+
+    :param bot: The :class:`~discord.ext.commands.Bot` object.
+    :param message_url: URL of the message
+    :return: Touple containing Guild, Channel and Message IDs or ``None`` if URL is not correct.
+    """
+    try:
+        parts = message_url.split("/")
+        guild_id = int(parts[-3])
+        channel_id = int(parts[-2])
+        message_id = int(parts[-1])
+    except (ValueError, IndexError):
+        return None
+
+    return (guild_id, channel_id, message_id)
+
+
 def message_url_from_reaction_payload(payload: discord.RawReactionActionEvent):
     guild_id = payload.guild_id if payload.guild_id is not None else "@me"
     return f"https://discord.com/channels/{guild_id}/{payload.channel_id}/{payload.message_id}"
