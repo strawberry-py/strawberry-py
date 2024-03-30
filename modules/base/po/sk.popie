@@ -427,6 +427,12 @@ msgstr Výnimka modulu
 msgid Translation error
 msgstr Chyba prekladu
 
+msgid Database error!
+msgstr Chyba databazy!
+
+msgid Database has been restored, changes were rolled back.
+msgstr Databáza bola obnovená, zmeny boli vrátené späť.
+
 msgid Error
 msgstr Chyba
 
