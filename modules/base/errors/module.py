@@ -1,4 +1,5 @@
 import datetime
+import sqlalchemy
 from io import BytesIO
 from pathlib import Path
 from typing import List, Tuple
@@ -7,7 +8,7 @@ import discord
 from discord.ext import commands
 
 import pie.exceptions
-from pie import check, i18n, logger, utils
+from pie import check, database, i18n, logger, utils
 
 from .database import LastError, Subscription
 
@@ -225,6 +226,9 @@ class Errors(commands.Cog):
         if isinstance(error, discord.DiscordException):
             return await Errors.handle_DiscordException(ctx, error)
 
+        if isinstance(error, sqlalchemy.exc.SQLAlchemyError):
+            return await Errors.handle_DatabaseException(ctx, error)
+
         # Other errors
         return (
             type(error).__name__,
@@ -259,6 +263,37 @@ class Errors(commands.Cog):
         return (
             title,
             str(error),
+            ReportTraceback.YES,
+        )
+
+    @staticmethod
+    async def handle_DatabaseException(ctx, error) -> Tuple[str, str, bool]:
+        """Handles exceptions raised by SQLAlchemy
+
+        Args:
+            ctx: The invocation context.
+            error: Detected exception.
+
+        Returns:
+            Tuple[str, str, bool]:
+                Translated error name,
+                Translated description,
+                Whether to ignore traceback in the log.
+        """
+        database.session.rollback()
+        database.session.commit()
+        await bot_log.critical(
+            None,
+            None,
+            "strawberry.py database session rolled back. The bubbled-up cause is:\n"
+            + "\n".join([f"| {line}" for line in str(error).split("\n")]),
+        )
+
+        return (
+            _(ctx, "Database error!"),
+            _(ctx, "Database has been restored, changes were rolled back.").format(
+                delay=error.retry_after
+            ),
             ReportTraceback.YES,
         )
 
