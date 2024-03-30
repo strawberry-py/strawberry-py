@@ -47,7 +47,7 @@ jobs:
 
       - name: Check the code formatting
         run: |
-          black . --diff
+          black . --diff --check
 
       - name: Check the code for errors
         run: |
