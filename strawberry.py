@@ -2,6 +2,7 @@ import asyncio
 import os
 import sys
 import platform
+import traceback
 from pathlib import Path
 from typing import Dict
 
@@ -188,9 +189,7 @@ async def on_ready():
         already_loaded = True
 
 
-async def on_error(event, *args, **kwargs):
-    error_type, error, tb = sys.exc_info()
-
+async def handle_error(error: Exception):
     # Make sure we rollback the database session if we encounter an error
     if isinstance(error, sqlalchemy.exc.SQLAlchemyError):
         database.session.rollback()
@@ -201,9 +200,31 @@ async def on_error(event, *args, **kwargs):
             "strawberry.py database session rolled back. The bubbled-up cause is:\n"
             + "\n".join([f"| {line}" for line in str(error).split("\n")]),
         )
+    else:
+        await bot_log.critical(
+            None,
+            None,
+            "Uncaught error bubbled-up:\n"
+            + str(error) + "\n"
+            + "\n".join(traceback.format_tb(error.__traceback__)),
+        )
+
+
+async def on_error(event, *args, **kwargs):
+    error_type, error, tb = sys.exc_info()
+
+    await handle_error(error)
 
 
 commands.Bot.on_error = on_error
+
+
+async def on_itx_error(self, itx: discord.Interaction, error: Exception) -> None:
+    await handle_error(error)
+
+
+discord.ui.Modal.on_error = on_itx_error
+discord.ui.View.on_error = on_itx_error
 
 
 from modules.base.admin.database import BaseAdminModule
