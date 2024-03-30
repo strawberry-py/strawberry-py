@@ -46,7 +46,7 @@ async def get_message(
         return None
 
 
-async def get_message_from_url(bot: commands.Bot, message_url: str):
+async def split_message_url(bot: commands.Bot, message_url: str):
     """Get message.
 
     Extracts Guild, Channel and Message ID from URL
