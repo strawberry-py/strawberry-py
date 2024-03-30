@@ -36,3 +36,27 @@ msgstr Již jsi hlasoval!
 
 msgid Your vote has been casted.
 msgstr Tvůj hlas byl započítán.
+
+msgid ## Example formats
+msgstr ## Příklady formátů
+
+msgid ### Absolute time
+msgstr ### Absolutní čas
+
+msgid DD-MM-YYYY hh:mm **|** hh:mm **|** DD.MM.YYYY
+msgstr DD-MM-RRRR hh:mm **|** hh:mm **|** DD.MM.RRRR
+
+msgid *For example:* `24.12.2024 18:00` or `17:00`
+msgstr *Například:* `24.12.2024 18:00` nebo `17:00`
+
+msgid *When using hh:mm if the time is in the past, it will add +1 day.*
+msgstr *Při použití hh:mm pokud je čas v minulosti, bude přidán +1 den.*
+
+msgid ### Relative time
+msgstr ### Relativní čas
+
+msgid W = weeks **|** D = days **|** H = hours **|** M = minutes
+msgstr W = týdny **|** D = dny **|** H = hodiny **|** M = minuty
+
+msgid *For example:* `1w10m` or `1d` or `7D1H`
+msgstr *Například:* `1w10m` nebo `1d` nebo `7D1H`
