@@ -152,3 +152,18 @@ def create_table(
     pages.append(page)
 
     return pages
+
+
+def shorten(text: Optional[str], max_len: int = 1024) -> Optional[str]:
+    """Shortens the text based on the given max length.
+    This function also sanitizes the code blocks.
+
+    :param text: Text to shorten.
+    :param max_len: How long the output strings should be.
+    :return: Shortened string with fixed .
+    """
+    if text is not None and len(text) > 1024:
+        text = text[:1024]
+        text = text[:-3] + "```" if text.count("```") % 2 != 0 else text
+
+    return text
