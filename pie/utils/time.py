@@ -3,6 +3,11 @@ import datetime
 import dateutil.parser
 
 
+from pie import i18n
+
+_ = i18n.Translator("pie").translate
+
+
 def id_to_datetime(snowflake_id: int) -> datetime.datetime:
     """Convert snowflake ID to timestamp."""
     return datetime.datetime.fromtimestamp(
@@ -121,3 +126,31 @@ def parse_datetime(string: str) -> datetime.datetime:
         return parse_iso8601_datetime(string)
     except ValueError:
         return parse_fuzzy_datetime(string)
+
+
+def get_datetime_docs(utx) -> str:
+    """Returns formatted string with examples of parse_datetime accepted
+    values.
+
+    Args:
+        utx: Translation context (CommandContext, Interaction, TranslationContext)
+
+    Returns:
+        str: Formatted string with examples.
+    """
+    return "\n".join([
+        _(utx, "## Example formats"),
+        _(utx, "### Absolute time"),
+        _(utx, "DD-MM-YYYY hh:mm **|** hh:mm **|** DD.MM.YYYY"),
+        _(utx, "*For example:* `24.12.2024 18:00` or `17:00`"),
+        _(
+            utx,
+            "*When using hh:mm if the time is in the past, it will add +1 day.*",
+        ),
+        _(utx, "### Relative time"),
+        _(
+            utx,
+            "W = weeks **|** D = days **|** H = hours **|** M = minutes",
+        ),
+        _(utx, "*For example:* `1w10m` or `1d` or `7D1H`"),
+    ])
