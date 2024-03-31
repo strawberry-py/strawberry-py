@@ -189,7 +189,7 @@ async def on_ready():
         already_loaded = True
 
 
-async def handle_error(error: Exception):
+async def handle_error(error: Exception, source: str):
     # Make sure we rollback the database session if we encounter an error
     if isinstance(error, sqlalchemy.exc.SQLAlchemyError):
         database.session.rollback()
@@ -204,10 +204,14 @@ async def handle_error(error: Exception):
         await bot_log.critical(
             None,
             None,
-            "Uncaught error bubbled-up:\n"
-            + str(error)
-            + "\n"
-            + "\n".join(traceback.format_tb(error.__traceback__)),
+            (
+                "Uncaught error bubbled-up.\n"
+                + (f"Source: {source}.\n" if source else "")
+                + "Traceback: \n"
+                + str(error)
+                + "\n"
+                + "\n".join(traceback.format_tb(error.__traceback__))
+            ),
         )
 
 
@@ -221,7 +225,8 @@ commands.Bot.on_error = on_error
 
 
 async def on_itx_error(self, itx: discord.Interaction, error: Exception) -> None:
-    await handle_error(error)
+    source = itx.command.qualified_name if itx.command else None
+    await handle_error(error, source)
 
 
 discord.ui.Modal.on_error = on_itx_error
