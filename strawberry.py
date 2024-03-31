@@ -205,7 +205,8 @@ async def handle_error(error: Exception):
             None,
             None,
             "Uncaught error bubbled-up:\n"
-            + str(error) + "\n"
+            + str(error)
+            + "\n"
             + "\n".join(traceback.format_tb(error.__traceback__)),
         )
 
@@ -225,6 +226,9 @@ async def on_itx_error(self, itx: discord.Interaction, error: Exception) -> None
 
 discord.ui.Modal.on_error = on_itx_error
 discord.ui.View.on_error = on_itx_error
+discord.app_commands.Command.on_error = on_itx_error
+discord.app_commands.Group.on_error = on_itx_error
+discord.app_commands.CommandTree.on_error = on_itx_error
 
 
 from modules.base.admin.database import BaseAdminModule
