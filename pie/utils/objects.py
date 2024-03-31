@@ -200,7 +200,7 @@ class ConfirmView(discord.ui.View):
         message: Confirmation message
 
     Args:
-        ctx: The context for translational and sending purposes.
+        utx: The context for translational and sending purposes.
         embed: Embed to send.
         timeout: Number of seconds before timeout. `None` if no timeout
         delete: Delete message after answering / timeout
@@ -232,16 +232,19 @@ class ConfirmView(discord.ui.View):
 
     def __init__(
         self,
-        ctx: commands.Context,
+        utx: Union[commands.Context, discord.Interaction],
         embed: discord.Embed,
         timeout: Union[int, float, None] = 300,
         delete: bool = True,
+        ephemeral: bool = True,
     ):
         super().__init__(timeout=timeout)
         self.value: Optional[bool] = None
-        self.ctx = ctx
+        self.utx = utx
         self.embed = embed
         self.delete = delete
+        self.ephemeral = ephemeral
+        self.itx = None
 
     async def send(self):
         """Sends message to channel defined by command context.
@@ -250,19 +253,46 @@ class ConfirmView(discord.ui.View):
         """
         self.add_item(
             discord.ui.Button(
-                label=_(self.ctx, "Confirm"),
+                label=_(self.utx, "Confirm"),
                 style=discord.ButtonStyle.green,
                 custom_id="confirm-button",
             )
         )
         self.add_item(
             discord.ui.Button(
-                label=_(self.ctx, "Reject"),
+                label=_(self.utx, "Reject"),
                 style=discord.ButtonStyle.red,
                 custom_id="reject-button",
             )
         )
-        self.message = await self.ctx.reply(embed=self.embed, view=self)
+
+        # Interactions have different limitations
+        if isinstance(self.utx, discord.Interaction):
+            await self.utx.response.send_message(
+                embed=self.embed, view=self, ephemeral=self.ephemeral
+            )
+            await self.wait()
+
+            try:
+                self.message = await self.utx.original_response()
+            except Exception:
+                pass
+
+            try:
+                if self.message and not self.delete:
+                    self.clear_items()
+                    await self.message.edit(embed=self.embed)
+                elif self.message and self.delete:
+                    await self.message.delete()
+            except Exception:
+                # There's nothing much to do with the exceptions
+                # We either don't have permissions or the message does not exist.
+                pass
+
+            return self.value
+
+        # Keep the original functionality for ctx
+        self.message = await self.utx.reply(embed=self.embed, view=self)
         await self.wait()
 
         if not self.delete:
@@ -275,9 +305,15 @@ class ConfirmView(discord.ui.View):
 
     async def interaction_check(self, interaction: discord.Interaction) -> None:
         """Gets called when interaction with any of the Views buttons happens."""
-        if interaction.user.id != self.ctx.author.id:
+        author_id: int = (
+            self.utx.user.id
+            if isinstance(self.utx, discord.Interaction)
+            else self.ctx.author.id
+        )
+
+        if interaction.user.id != author_id:
             await interaction.response.send_message(
-                _(self.ctx, "Only the author can confirm the action."), ephemeral=True
+                _(self.utx, "Only the author can confirm the action."), ephemeral=True
             )
             return
 
@@ -285,6 +321,10 @@ class ConfirmView(discord.ui.View):
             self.value = True
         else:
             self.value = False
+
+        # Save interaction for future use
+        self.itx = interaction
+
         self.stop()
 
     async def on_timeout(self) -> None:
