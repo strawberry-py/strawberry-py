@@ -295,6 +295,8 @@ class AbstractLogger:
         for conf in confs:
             try:
                 channel = self.bot.get_guild(conf.guild_id).get_channel(conf.channel_id)
+                for stub in output:
+                    await channel.send(f"```{stub}```")
             except AttributeError as exc:
                 message: str = "Log event target is not available"
 
@@ -309,9 +311,6 @@ class AbstractLogger:
                     f"{message}: {exc!s}.",
                 )
                 continue
-
-            for stub in output:
-                await channel.send(f"```{stub}```")
 
     async def debug(
         self,
