@@ -1,3 +1,7 @@
+ci:
+  autoupdate_schedule: monthly
+  autoupdate_branch: pre-commit-ci
+  autofix_prs: false
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
