@@ -26,7 +26,7 @@ There you can find information on how to set up production instance or how to st
 ### User guide
 
 Running the bot is just a start.
-To see how you can manage the running instance, see our [GitHub.io](https://strawberry-py.github.io/docs/) page.
+To see how you can manage the running instance, see our [GitHub.io](https://strawberry-py.github.io/strawberry-userdocs/) page.
 
 ## Authors
 
