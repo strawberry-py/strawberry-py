@@ -1,15 +1,14 @@
 import contextlib
 import datetime
-from typing import Callable, Dict, Optional, List
+from typing import Callable, Dict, List, Optional
 
 import discord
 from discord.ext import commands
 
 import pie._tracing
 from pie.database.config import Config
-from pie.spamchannel.database import SpamChannel
 from pie.exceptions import SpamChannelException
-
+from pie.spamchannel.database import SpamChannel
 
 config = Config.get()
 _trace: Callable = pie._tracing.register("pie_spamchannel")

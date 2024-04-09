@@ -1,8 +1,8 @@
-import ring
 from pathlib import Path
 from typing import Dict, Optional, Union
 
 import discord
+import ring
 
 from pie.database.config import Config
 from pie.i18n.database import GuildLanguage, MemberLanguage

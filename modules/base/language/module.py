@@ -5,7 +5,7 @@ from typing import Dict, Tuple
 from discord.ext import commands
 
 import pie.database.config
-from pie import i18n, check, logger, utils
+from pie import check, i18n, logger, utils
 from pie.i18n.database import GuildLanguage, MemberLanguage
 
 _ = i18n.Translator("modules/base").translate

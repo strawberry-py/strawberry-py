@@ -7,13 +7,12 @@ import re
 import sys
 import traceback
 from enum import IntEnum
-from typing import Optional, List, Union
+from typing import List, Optional, Union
 
 import discord
 
 from pie import utils
 from pie.logger.database import LogConf
-
 
 # Globals
 

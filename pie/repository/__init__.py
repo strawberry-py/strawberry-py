@@ -1,16 +1,16 @@
 from __future__ import annotations
 
 import configparser
-import git
 import hashlib
 import re
 import subprocess  # nosec: B404
 import sys
 from pathlib import Path
-from typing import List, Tuple, Optional
+from typing import List, Optional, Tuple
+
+import git
 
 from pie.exceptions import RepositoryMetadataError
-
 
 RE_QUOTE = r"(\"|\"\"\"|')"
 RE_NAME = r"[a-z_][0-9a-z_]+"

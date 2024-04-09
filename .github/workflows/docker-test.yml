@@ -28,6 +28,6 @@ jobs:
       with:
         dockerfile: 'Dockerfile'
         lint: 'hadolint'
-      
+
     - name: Docker-compose validator
       run: touch .env && docker-compose config

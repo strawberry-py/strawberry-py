@@ -1,7 +1,8 @@
 from __future__ import annotations
+
 from typing import Dict, Union
 
-from sqlalchemy import Column, String, Integer
+from sqlalchemy import Column, Integer, String
 
 from pie.database import database, session
 
