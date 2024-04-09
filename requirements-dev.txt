@@ -1,8 +1,8 @@
 pre-commit
 
 # static analysis
-black==24.3.0
-flake8==7.0.0
+black
+flake8
 flake8-print
 flake8-todo
 
