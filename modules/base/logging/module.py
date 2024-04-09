@@ -2,7 +2,7 @@ from typing import List, Optional
 
 from discord.ext import commands
 
-from pie import check, logger, utils, i18n
+from pie import check, i18n, logger, utils
 from pie.logger.database import LogConf
 
 _ = i18n.Translator(__file__).translate

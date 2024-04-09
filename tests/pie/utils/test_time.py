@@ -1,8 +1,8 @@
 from datetime import datetime, timedelta
 
-from pie import utils
-
 import pytest
+
+from pie import utils
 
 
 @pytest.mark.parametrize(

@@ -1,12 +1,12 @@
 from math import ceil
-from typing import List, Tuple, Dict, Set
+from typing import Dict, List, Set, Tuple
 
 import discord
 from discord.ext import commands, tasks
 
 from pie import check, i18n, logger, utils
 
-from .database import AutoThread, UserPin, UserThread, Bookmark
+from .database import AutoThread, Bookmark, UserPin, UserThread
 
 _ = i18n.Translator("modules/base").translate
 bot_log = logger.Bot.logger()

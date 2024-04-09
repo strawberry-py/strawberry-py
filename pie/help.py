@@ -1,4 +1,4 @@
-from typing import Optional, Sequence, Union, Set
+from typing import Optional, Sequence, Set, Union
 
 from discord.ext import commands
 

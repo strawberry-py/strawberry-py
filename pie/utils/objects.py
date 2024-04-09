@@ -275,7 +275,7 @@ class ConfirmView(discord.ui.View):
 
             try:
                 self.message = await self.utx.original_response()
-            except Exception:
+            except Exception:  # nosec
                 pass
 
             try:
@@ -284,7 +284,7 @@ class ConfirmView(discord.ui.View):
                     await self.message.edit(embed=self.embed)
                 elif self.message and self.delete:
                     await self.message.delete()
-            except Exception:
+            except Exception:  # nosec
                 # There's nothing much to do with the exceptions
                 # We either don't have permissions or the message does not exist.
                 pass

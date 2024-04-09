@@ -1,19 +1,17 @@
 import asyncio
 import os
-import sys
 import platform
+import sys
 import traceback
 from pathlib import Path
 from typing import Dict
 
-import sqlalchemy
-
 import discord
+import sqlalchemy
 from discord.ext import commands
 
-from pie.cli import COLOR
 from pie import exceptions
-
+from pie.cli import COLOR
 
 # Setup checks
 
@@ -107,7 +105,6 @@ del root_path
 
 
 from pie import database
-
 
 database.init_core()
 database.init_modules()

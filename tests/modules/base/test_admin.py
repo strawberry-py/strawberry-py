@@ -1,8 +1,9 @@
-import git
-import pytest
 import tempfile
 from pathlib import Path
 from typing import Union
+
+import git
+import pytest
 
 from pie.exceptions import RepositoryMetadataError
 from pie.repository import Repository

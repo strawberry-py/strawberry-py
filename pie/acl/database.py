@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import enum
-from typing import Any, Dict, Optional, List
+from typing import Any, Dict, List, Optional
 
-from sqlalchemy import BigInteger, Boolean, Column, Enum, String, Integer
+from sqlalchemy import BigInteger, Boolean, Column, Enum, Integer, String
 
 from pie.database import database, session
 

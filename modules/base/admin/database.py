@@ -1,7 +1,8 @@
 from __future__ import annotations
-from typing import Optional, List
 
-from sqlalchemy import Column, String, Boolean
+from typing import List, Optional
+
+from sqlalchemy import Boolean, Column, String
 
 from pie.database import database, session
 

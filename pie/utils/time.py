@@ -1,7 +1,7 @@
-import re
 import datetime
-import dateutil.parser
+import re
 
+import dateutil.parser
 
 from pie import i18n
 
