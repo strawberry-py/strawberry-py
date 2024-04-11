@@ -7,8 +7,6 @@ import ring
 from pie.database.config import Config
 from pie.i18n.database import GuildLanguage, MemberLanguage
 
-config = Config.get()
-
 LANGUAGES = ("cs", "sk")
 
 
