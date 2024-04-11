@@ -4,10 +4,6 @@ from typing import Optional, Union
 import discord
 from discord.ext import commands
 
-from pie.database.config import Config
-
-config = Config.get()
-
 
 async def get_message(
     bot: commands.Bot, guild_or_user_id: int, channel_id: int, message_id: int
@@ -164,23 +160,6 @@ async def remove_reaction(
     except discord.HTTPException:
         return False
     return True
-
-
-async def update_presence(bot: commands.Bot, *, status: str = None) -> None:
-    """Update the bot presence.
-
-    The Activity is always set to ``<prefix>help``. The Status is loaded
-    from the database, unless it is specified as parameter.
-
-    :param status: Overwrite presence status.
-    """
-    await bot.change_presence(
-        status=getattr(discord.Status, config.status if status is None else status),
-        activity=discord.Game(
-            start=datetime.datetime.utcnow(),
-            name=config.prefix + "help",
-        ),
-    )
 
 
 async def send_dm(
