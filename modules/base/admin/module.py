@@ -8,6 +8,7 @@ from discord.ext import commands, tasks
 
 import pie.database.config
 from pie import check, i18n, logger, utils
+from pie.bot import Strawberry
 from pie.repository import Repository, RepositoryManager
 from pie.spamchannel.database import SpamChannel
 
@@ -25,6 +26,8 @@ manager = RepositoryManager()
 
 class Admin(commands.Cog):
     """Bot administration functions."""
+
+    bot: Strawberry
 
     def __init__(self, bot):
         self.bot = bot
@@ -81,7 +84,7 @@ class Admin(commands.Cog):
                 None,
                 f"Latency is {self.bot.latency:.2f}, setting status to {status}.",
             )
-            await utils.discord.update_presence(self.bot, status=status)
+            await self.bot.update_presence(self.bot, status=status)
 
     @status_loop.before_loop
     async def before_status_loop(self):
@@ -489,7 +492,7 @@ class Admin(commands.Cog):
             self.status_loop.cancel()
 
         if key in ("prefix", "status"):
-            await utils.discord.update_presence(self.bot)
+            await self.bot.change_presence()
 
     @commands.guild_only()
     @check.acl2(check.ACLevel.BOT_OWNER)
