@@ -5,6 +5,7 @@ This document serves as a reference.
 Below are full exception lists as of `discord.py@c26473d`. Because it is hard to track exception changes, it has been copypasted from the documentation:
 
 - https://discordpy.readthedocs.io/en/latest/api.html#exception-hierarchy
+- https://discordpy.readthedocs.io/en/latest/interactions/api.html#exception-hierarchy
 - https://discordpy.readthedocs.io/en/latest/ext/commands/api.html#exception-hierarchy
 
 To check if there were any changes, you can paste latest list and check the diff -- if there is none, everything is up to date.
@@ -24,6 +25,29 @@ Exception
             NotFound
             DiscordServerError
         RateLimited
+```
+
+```
+DiscordException
+    AppCommandError
+        CommandInvokeError
+        TransformerError
+        TranslationError
+        CheckFailure
+            NoPrivateMessage
+            MissingRole
+            MissingAnyRole
+            MissingPermissions
+            BotMissingPermissions
+            CommandOnCooldown
+        CommandLimitReached
+        CommandAlreadyRegistered
+        CommandSignatureMismatch
+        CommandNotFound
+        MissingApplicationID
+        CommandSyncFailure
+    HTTPException
+        CommandSyncFailure
 ```
 
 ```

@@ -48,16 +48,6 @@ class Strawberry(commands.Bot):
         self.bot_log = logger.Bot.logger(self)
         self.guild_log = logger.Guild.logger(self)
 
-        # Setup default error handlers
-        self.setup_error_handlers()
-
-    def setup_error_handlers(self):
-        discord.ui.Modal.on_error = self.on_itx_error
-        discord.ui.View.on_error = self.on_itx_error
-        discord.app_commands.Command.on_error = self.on_itx_error
-        discord.app_commands.Group.on_error = self.on_itx_error
-        discord.app_commands.CommandTree.on_error = self.on_itx_error
-
     async def update_app_info(self):
         # Update bot information
         app: discord.AppInfo = await self.application_info()
@@ -138,10 +128,6 @@ class Strawberry(commands.Bot):
         error_type, error, tb = sys.exc_info()
 
         await self.handle_error(error)
-
-    async def on_itx_error(self, itx: discord.Interaction, error: Exception) -> None:
-        source = itx.command.qualified_name if itx.command else None
-        await self.handle_error(error, source)
 
     async def load_modules(self):
         modules = (
