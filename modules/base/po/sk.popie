@@ -508,6 +508,36 @@ msgstr Nebolo nájdené rozšírenie **{extension}**
 msgid Command error
 msgstr Chyba príkazu
 
+msgid Command invoke error
+msgstr Chyba pri volaní príkazu
+
+msgid Command translation error
+msgstr Chyba prekladu príkazu
+
+msgid Command transformer error
+msgstr Chyba príkazového transformátora
+
+msgid Command limit reached
+msgstr Bol dosiahnutý limit príkazov
+
+msgid Discord command limit for bot reached
+msgstr Bol dosiahnutý limit príkazov pre bota stanovený Discordom
+
+msgid Command already registered
+msgstr Príkaz je už zaregistrovaný
+
+msgid Command {name} is already registered. Guild ID: {guild_id}.
+msgstr Príkaz {name} je už zaregistrovaný. ID guildy: {guild_id}.
+
+msgid Command definition differs from the one provided to Discord.
+msgstr Definícia príkazu sa líši od definície poskytnutej pre Discord
+
+msgid Client is missing application ID
+msgstr Klientovi chýba ID aplikácie
+
+msgid Command sync failure
+msgstr Chyba synchronizácie príkazov
+
 msgid Conversion to **{name}** resulted in **{exception}**
 msgstr Konverzia na **{name}** skončila s **{exception}**
 
@@ -517,9 +547,6 @@ msgstr Príkaz nenájdený
 msgid The command is not available
 msgstr Príkaz není dostupný
 
-msgid Command invoke error
-msgstr Chyba pri volaní príkazu
-
 msgid Slow down. Wait **{time}**
 msgstr Spomal. Počkaj **{time}**
 
@@ -528,9 +555,6 @@ msgstr Tento príkaz už beží niekoľko krát
 
 msgid The limit is **{num}**/**{per}**
 msgstr Limit je **{num}**/**{per}**
-
-msgid Command structure error
-msgstr Chyba štruktúry príkazu
 
 msgid Check failure
 msgstr Chyba kontroly
