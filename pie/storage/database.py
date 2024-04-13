@@ -56,7 +56,7 @@ class StorageData(database.base):
         )
         return data
 
-    @classmethod
+    @staticmethod
     def remove(module: str, guild_id: int, key: str) -> bool:
         count = (
             session.get(StorageData)
