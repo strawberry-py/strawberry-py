@@ -179,9 +179,9 @@ class Errors(commands.Cog):
             return
 
         # Get original exception
-        if hasattr(error, "original"):
+        if getattr(error, "original", None):
             error = error.original
-        elif hasattr(error, "__cause__"):
+        elif getattr(error, "__cause__", None):
             error = error.__cause__
 
         # Getting the *original* exception is difficult.
@@ -220,9 +220,9 @@ class Errors(commands.Cog):
             return
 
         # Get original exception
-        if hasattr(error, "original"):
+        if getattr(error, "original", None):
             error = error.original
-        elif hasattr(error, "__cause__"):
+        elif getattr(error, "__cause__", None):
             error = error.__cause__
 
         # Getting the *original* exception is difficult.
