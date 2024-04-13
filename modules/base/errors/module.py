@@ -3,8 +3,9 @@ from io import BytesIO
 from pathlib import Path
 from typing import List, Tuple
 
-import discord
 import sqlalchemy
+
+import discord
 from discord import app_commands
 from discord.ext import commands
 

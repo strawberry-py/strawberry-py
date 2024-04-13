@@ -4,8 +4,9 @@ import inspect
 import re
 from typing import Callable, Optional, Set, TypeVar, Union
 
-import discord
 import ring
+
+import discord
 from discord.ext import commands
 
 import pie._tracing
