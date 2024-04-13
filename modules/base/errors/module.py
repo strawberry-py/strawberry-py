@@ -3,6 +3,7 @@ from io import BytesIO
 from pathlib import Path
 from typing import List, Tuple
 
+import git
 import sqlalchemy
 
 import discord
@@ -276,11 +277,36 @@ class Errors(commands.Cog):
         if isinstance(error, sqlalchemy.exc.SQLAlchemyError):
             return await Errors.handle_DatabaseException(utx, error)
 
+        if isinstance(error, git.GitError):
+            return await Errors.handle_GitException(utx, error)
+
         # Other errors
         return (
             type(error).__name__,
             _(utx, "An unexpected error occurred"),
             ReportTraceback.YES,
+        )
+
+    @staticmethod
+    async def handle_GitException(
+        utx: discord.Interaction | commands.Context, error
+    ) -> Tuple[str, str, bool]:
+        """Handles exceptions raised by strawberry-py
+
+        Args:
+            utx: The invocation context / interaction.
+            error: Detected exception.
+
+        Returns:
+            Tuple[str, str, bool]:
+                Translated error name,
+                Translated description,
+                Whether to ignore traceback in the log.
+        """
+        return (
+            type(error).__name__,
+            str(error),
+            ReportTraceback.NO,
         )
 
     @staticmethod
