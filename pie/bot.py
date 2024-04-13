@@ -5,8 +5,9 @@ import os
 import sys
 import traceback
 
-import discord
 import sqlalchemy
+
+import discord
 from discord.ext import commands
 
 from modules.base.admin.database import BaseAdminModule
