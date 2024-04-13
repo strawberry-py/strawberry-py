@@ -59,7 +59,7 @@ class StorageData(database.base):
     @staticmethod
     def remove(module: str, guild_id: int, key: str) -> bool:
         count = (
-            session.get(StorageData)
+            session.query(StorageData)
             .filter_by(module=module, guild_id=guild_id, key=key)
             .delete()
         )
