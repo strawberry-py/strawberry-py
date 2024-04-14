@@ -235,27 +235,27 @@ def get_true_ACLevel(
 
 
 def can_invoke_command(
-    bot: commands.Bot, ctx: commands.Context, command: str
+    bot: commands.Bot, utx: commands.Context | discord.Interaction, command: str
 ) -> Optional[bool]:
     """Check if the command is invokable in supplied context.
 
     Returns `None` for direct message contexts.
     """
-    if not ctx.guild:
+    if not utx.guild:
         return None
 
-    command_level = get_true_ACLevel(bot, ctx.guild.id, command)
+    command_level = get_true_ACLevel(bot, utx.guild.id, command)
     if command_level is None:
         return False
 
     try:
         acl2_function(
             level=command_level,
-            bot=ctx.bot,
-            invoker=ctx.author,
+            bot=utx.bot,
+            invoker=utx.author if isinstance(utx, commands.Context) else utx.user,
             command=command,
-            guild=ctx.guild,
-            channel=ctx.channel,
+            guild=utx.guild,
+            channel=utx.channel,
         )
         return True
     except ACLFailure:
