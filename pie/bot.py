@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime
+import importlib
 import os
 import sys
 import traceback
@@ -129,6 +130,30 @@ class Strawberry(commands.Bot):
         error_type, error, tb = sys.exc_info()
 
         await self.handle_error(error)
+
+    async def load_extension(self, name: str, *, package: str | None = None) -> None:
+        """We have to override the load_extension function as the default
+        implementation causes ModuleNotFoundError in importlib instead of
+        expected ExtensionNotFound.
+        """
+        name = self._resolve_name(name, package)
+        #  if name in self._BotBase__extensions:
+        if name in self.extensions:
+            raise commands.ExtensionAlreadyLoaded(name)
+
+        parts = name.split(".")
+        path = parts[0]
+
+        spec = importlib.util.find_spec(path)
+        if spec is None:
+            raise commands.ExtensionNotFound(name)
+
+        for part in parts[1:]:
+            path += f".{part}"
+            spec = importlib.util.find_spec(path)
+            if spec is None:
+                raise commands.ExtensionNotFound(name)
+        await self._load_from_module_spec(spec, name)
 
     async def load_modules(self):
         modules = (
