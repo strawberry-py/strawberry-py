@@ -518,23 +518,30 @@ class VoteEmbed(discord.ui.View):
 
     def __init__(
         self,
-        ctx: commands.Context,
+        utx: commands.Context | discord.Interaction,
         embed: discord.Embed,
         limit: int,
         timeout: Union[int, float, None] = 300,
         delete: bool = True,
         vote_author: bool = False,
+        ephemeral: bool = True,
     ):
         super().__init__(timeout=timeout)
         self.value: Optional[bool] = None
-        self.ctx = ctx
+        self.utx = utx
         self.embed = embed
         self.limit = limit
         self.voted = []
         self.delete = delete
+        self.ephemeral = ephemeral
 
         if vote_author:
-            self.voted.append(ctx.author.id)
+            author_id: int = (
+                self.utx.user.id
+                if isinstance(self.utx, discord.Interaction)
+                else self.utx.author.id
+            )
+            self.voted.append(author_id)
 
     async def send(self):
         """Sends message to channel defined by command context.
@@ -543,14 +550,24 @@ class VoteEmbed(discord.ui.View):
         """
 
         self.button = discord.ui.Button(
-            label=_(self.ctx, "Yes") + " ({})".format(len(self.voted)),
+            label=_(self.utx, "Yes") + " ({})".format(len(self.voted)),
             style=discord.ButtonStyle.green,
             custom_id="yes-button",
         )
 
         self.add_item(self.button)
 
-        self.message = await self.ctx.send(embed=self.embed, view=self)
+        if isinstance(self.utx, commands.Context):
+            self.message = await self.utx.send(embed=self.embed, view=self)
+        else:
+            if self.utx.response.is_done():
+                self.message = await self.utx.edit_original_response(
+                    embed=self.embed, view=self
+                )
+            else:
+                self.message = await self.utx.response.send_message(
+                    embed=self.embed, view=self.view, ephemeral=self.ephemeral
+                )
         await self.wait()
 
         if not self.delete:
@@ -561,26 +578,26 @@ class VoteEmbed(discord.ui.View):
                 await self.message.delete()
         return self.value
 
-    async def interaction_check(self, interaction: discord.Interaction) -> None:
+    async def interaction_check(self, itx: discord.Interaction) -> None:
         """Gets called when interaction with any of the Views buttons happens."""
-        if interaction.user.id in self.voted:
-            await interaction.response.send_message(
-                _(self.ctx, "You have already voted!"), ephemeral=True
+        if itx.user.id in self.voted:
+            await itx.response.send_message(
+                _(itx, "You have already voted!"), ephemeral=True
             )
             return
 
-        self.voted.append(interaction.user.id)
+        self.voted.append(itx.user.id)
 
         if len(self.voted) >= self.limit:
             self.value = True
             self.stop()
             return
 
-        await interaction.response.send_message(
-            _(self.ctx, "Your vote has been casted."), ephemeral=True
+        await itx.response.send_message(
+            _(itx, "Your vote has been casted."), ephemeral=True
         )
 
-        self.button.label = _(self.ctx, "Yes") + " ({})".format(len(self.voted))
+        self.button.label = _(itx, "Yes") + " ({})".format(len(self.voted))
 
         await self.message.edit(embed=self.embed, view=self)
 
