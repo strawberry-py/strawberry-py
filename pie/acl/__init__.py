@@ -251,7 +251,7 @@ def can_invoke_command(
     try:
         acl2_function(
             level=command_level,
-            bot=utx.bot,
+            bot=bot,
             invoker=utx.author if isinstance(utx, commands.Context) else utx.user,
             command=command,
             guild=utx.guild,
