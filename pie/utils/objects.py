@@ -29,20 +29,22 @@ class ScrollableEmbed(discord.ui.View):
 
     def __init__(
         self,
-        ctx: commands.Context,
+        utx: commands.Context | discord.Interaction,
         iterable: Iterable[discord.Embed],
         timeout: int = 300,
         delete_message: bool = False,
         locked: bool = False,
         as_reply: bool = True,
+        ephemeral: bool = True,
     ) -> ScrollableEmbed:
         super().__init__(timeout=timeout)
-        self.pages: Iterable[discord.Embed] = self._pages_from_iter(ctx, iterable)
-        self.ctx: commands.Context = ctx
+        self.pages: Iterable[discord.Embed] = self._pages_from_iter(utx, iterable)
+        self.utx: commands.Context = utx
         self.pagenum: int = 0
         self.delete_message: bool = delete_message
         self.locked: bool = locked
         self.as_reply: bool = as_reply
+        self.ephemeral: bool = ephemeral
 
         self.add_item(
             discord.ui.Button(
@@ -81,14 +83,16 @@ class ScrollableEmbed(discord.ui.View):
         )
 
     def _pages_from_iter(
-        self, ctx: commands.Context, iterable: Iterable[discord.Embed]
+        self,
+        utx: commands.Context | discord.Interaction,
+        iterable: Iterable[discord.Embed],
     ) -> list[discord.Embed]:
         pages = []
         for idx, embed in enumerate(iterable):
             if not isinstance(embed, discord.Embed):
                 raise ValueError("Items in iterable must be of type discord.Embed")
             embed.add_field(
-                name=_(ctx, "Page"),
+                name=_(utx, "Page"),
                 value="{curr}/{total}".format(curr=idx + 1, total=len(iterable)),
                 inline=False,
             )
@@ -105,68 +109,103 @@ class ScrollableEmbed(discord.ui.View):
             self.lock_button.label = "🔒"
             self.lock_button.style = discord.ButtonStyle.red
 
-    def __get_gtx(
-        self,
-        interaction: discord.Interaction,
-    ) -> i18n.TranslationContext:
-        if self.ctx.guild is not None:
-            gtx = i18n.TranslationContext(self.ctx.guild.id, interaction.user.id)
-        else:
-            # TranslationContext does not know how to use user without guild,
-            # this will result in bot preference being used.
-            gtx = i18n.TranslationContext(None, interaction.user.id)
-        return gtx
-
     async def scroll(self):
         """Make embeds move.
 
         Sends the first page to the context.
         """
-        ctx = self.ctx
+        utx: discord.Interaction | commands.Context = self.utx
         if self.pages == []:
             self.clear_items()
-            await ctx.reply(_(ctx, "No results were found."))
+            if isinstance(utx, commands.Context):
+                await utx.reply(_(utx, "No results were found."))
+            else:
+                await self._respond(
+                    itx=utx,
+                    message=_(utx, "No results were found."),
+                    ephemeral=self.ephemeral,
+                )
             self.stop()
             return
 
         if len(self.pages) == 1:
             self.clear_items()
-            await ctx.send(embed=self.pages[0])
+            if isinstance(utx, commands.Context):
+                await utx.reply(embed=self.pages[0])
+            else:
+                await self._respond(
+                    itx=utx, embed=self.pages[0], ephemeral=self.ephemeral
+                )
             self.stop()
             return
 
-        send = ctx.reply if self.as_reply else ctx.send
-        self.message = await send(embed=self.pages[0], view=self, mention_author=False)
+        if isinstance(utx, commands.Context):
+            send = utx.reply if self.as_reply else utx.send
+            self.message = await send(
+                embed=self.pages[0], view=self, mention_author=False
+            )
+        else:
+            self.message = await self._respond(
+                itx=utx, embed=self.pages[0], view=self, ephemeral=self.ephemeral
+            )
 
-    async def interaction_check(self, interaction: discord.Interaction) -> None:
+    async def _respond(
+        self,
+        itx: discord.Interaction,
+        message: str = discord.interactions.MISSING,
+        embed: discord.Embed = discord.interactions.MISSING,
+        view: ScrollableEmbed = discord.interactions.MISSING,
+        ephemeral: bool = True,
+    ) -> discord.Message:
+        if itx.response.is_done():
+            if message:
+                return await itx.edit_original_response(content=message)
+            elif embed:
+                return await itx.edit_original_response(embed=embed, view=view)
+        else:
+            if message:
+                return await itx.response.send_message(
+                    content=message, ephemeral=ephemeral
+                )
+            elif embed:
+                return await itx.response.send_message(
+                    embed=embed, view=view, ephemeral=ephemeral
+                )
+
+    async def interaction_check(self, itx: discord.Interaction) -> None:
         """Gets called when interaction with any of the Views buttons happens."""
-        if interaction.data["custom_id"] not in [
+        if itx.data["custom_id"] not in [
             "lock-button",
             "left-button",
             "right-button",
         ]:
             # In case of unknown interaction (eg: decorated functions in child class)
-            await super().interaction_check(interaction)
+            await super().interaction_check(itx)
             return
-        if interaction.data["custom_id"] == "lock-button":
-            if interaction.user.id is self.ctx.author.id:
+
+        author_id: int = (
+            self.utx.user.id
+            if isinstance(self.utx, discord.Interaction)
+            else self.utx.author.id
+        )
+
+        if itx.data["custom_id"] == "lock-button":
+            if itx.user.id is author_id:
                 self._toggle_lock()
-                await interaction.response.edit_message(view=self)
+                await itx.response.edit_message(view=self)
                 return
             else:
-                gtx = self.__get_gtx(interaction)
-                await interaction.response.send_message(
-                    _(gtx, "Only command issuer can toggle the lock."), ephemeral=True
+                await itx.response.send_message(
+                    _(itx, "Only command issuer can toggle the lock."), ephemeral=True
                 )
                 return
-        elif interaction.user.id != self.ctx.author.id and self.locked:
-            gtx = self.__get_gtx(interaction)
-            await interaction.response.send_message(
-                _(gtx, "Only command issuer can scroll."), ephemeral=True
+        elif itx.user.id != author_id and self.locked:
+            await itx.response.send_message(
+                _(itx, "Only command issuer can scroll."), ephemeral=True
             )
             return
 
-        if interaction.data["custom_id"] == "left-button":
+        if itx.data["custom_id"] == "left-button":
             self.pagenum -= 1
         else:
             self.pagenum += 1
@@ -177,7 +216,7 @@ class ScrollableEmbed(discord.ui.View):
         if self.pagenum >= len(self.pages):
             self.pagenum = 0
 
-        await interaction.response.edit_message(embed=self.pages[self.pagenum])
+        await itx.response.edit_message(embed=self.pages[self.pagenum])
 
     async def on_timeout(self) -> None:
         """Gets called when the view timeouts."""
@@ -308,7 +347,7 @@ class ConfirmView(discord.ui.View):
         author_id: int = (
             self.utx.user.id
             if isinstance(self.utx, discord.Interaction)
-            else self.ctx.author.id
+            else self.utx.author.id
         )
 
         if interaction.user.id != author_id:
