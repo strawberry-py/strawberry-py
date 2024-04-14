@@ -50,6 +50,13 @@ class Errors(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.bot.tree.on_error = self.on_tree_error
+        discord.ui.View.on_error = self.on_ui_error
+        discord.ui.Modal.on_error = self.on_ui_error
+
+    async def on_ui_error(
+        self, itx: discord.Interaction, error: Exception, item
+    ) -> None:
+        await self.on_tree_error(itx=itx, error=error)
 
     @commands.guild_only()
     @check.acl2(check.ACLevel.SUBMOD)
