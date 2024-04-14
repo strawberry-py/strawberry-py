@@ -109,7 +109,7 @@ class ScrollableEmbed(discord.ui.View):
             self.lock_button.label = "🔒"
             self.lock_button.style = discord.ButtonStyle.red
 
-    async def scroll(self):
+    async def scroll(self, stop: bool = True):
         """Make embeds move.
 
         Sends the first page to the context.
@@ -125,7 +125,8 @@ class ScrollableEmbed(discord.ui.View):
                     message=_(utx, "No results were found."),
                     ephemeral=self.ephemeral,
                 )
-            self.stop()
+            if stop:
+                self.stop()
             return
 
         if len(self.pages) == 1:
@@ -388,21 +389,21 @@ class VotableEmbed(discord.Embed, metaclass=ABCMeta):
         super(VotableEmbed, self).__init__(*args, **kwargs)
 
     @abstractmethod
-    async def vote_up(interaction: discord.Interaction):
+    async def vote_up(itx: discord.Interaction):
         """
         Callback when user votes UP. Must be overriden.
         """
         pass
 
     @abstractmethod
-    async def vote_neutral(interaction: discord.Interaction):
+    async def vote_neutral(itx: discord.Interaction):
         """
         Callback when user votes NEUTRAL. Must be overriden.
         """
         pass
 
     @abstractmethod
-    async def vote_down(interaction: discord.Interaction):
+    async def vote_down(itx: discord.Interaction):
         """
         Callback when user votes DOWNs. Must be overriden.
         """
@@ -457,29 +458,21 @@ class ScrollableVotingEmbed(ScrollableEmbed):
 
         Sends the first page to the context.
         """
-        ctx = self.ctx
-        if self.pages == []:
-            self.clear_items()
-            await ctx.reply(_(ctx, "No results were found."))
-            self.stop()
-            return
+        return await super().scroll(False)
 
-        send = ctx.reply if self.as_reply else ctx.send
-        self.message = await send(embed=self.pages[0], view=self, mention_author=False)
-
-    async def interaction_check(self, interaction: discord.Interaction) -> None:
+    async def interaction_check(self, itx: discord.Interaction) -> None:
         """
         Gets called when interaction with any of the Views buttons happens.
         If custom ID is not recognized, it's passed to parent.
         """
-        if interaction.data["custom_id"] == "vote_up":
-            await self.pages[self.pagenum].vote_up(interaction)
-        elif interaction.data["custom_id"] == "vote_neutral":
-            await self.pages[self.pagenum].vote_neutral(interaction)
-        elif interaction.data["custom_id"] == "vote_down":
-            await self.pages[self.pagenum].vote_down(interaction)
+        if itx.data["custom_id"] == "vote_up":
+            await self.pages[self.pagenum].vote_up(itx)
+        elif itx.data["custom_id"] == "vote_neutral":
+            await self.pages[self.pagenum].vote_neutral(itx)
+        elif itx.data["custom_id"] == "vote_down":
+            await self.pages[self.pagenum].vote_down(itx)
         else:
-            await super().interaction_check(interaction)
+            await super().interaction_check(itx)
 
 
 class VoteEmbed(discord.ui.View):
