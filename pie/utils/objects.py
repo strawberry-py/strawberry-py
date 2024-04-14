@@ -120,7 +120,7 @@ class ScrollableEmbed(discord.ui.View):
             if isinstance(utx, commands.Context):
                 await utx.reply(_(utx, "No results were found."))
             else:
-                await self._respond(
+                self.message = await self._respond(
                     itx=utx,
                     message=_(utx, "No results were found."),
                     ephemeral=self.ephemeral,
@@ -165,13 +165,12 @@ class ScrollableEmbed(discord.ui.View):
                 return await itx.edit_original_response(embed=embed, view=view)
         else:
             if message:
-                return await itx.response.send_message(
-                    content=message, ephemeral=ephemeral
-                )
+                await itx.response.send_message(content=message, ephemeral=ephemeral)
             elif embed:
                 return await itx.response.send_message(
                     embed=embed, view=view, ephemeral=ephemeral
                 )
+            return await itx.original_response()
 
     async def interaction_check(self, itx: discord.Interaction) -> None:
         """Gets called when interaction with any of the Views buttons happens."""
