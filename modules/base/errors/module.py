@@ -54,7 +54,7 @@ class Errors(commands.Cog):
         discord.ui.Modal.on_error = self.on_ui_error
 
     async def on_ui_error(
-        self, itx: discord.Interaction, error: Exception, item
+        self, itx: discord.Interaction, error: Exception, item=None
     ) -> None:
         await self.on_tree_error(itx=itx, error=error)
 
