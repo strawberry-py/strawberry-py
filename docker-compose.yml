@@ -2,17 +2,17 @@ version: "3.6"
 
 services:
   db:
-    image: docker.io/postgres:13-alpine
+    image: docker.io/postgres:16-alpine
     container_name: ${INSTANCE_NAME}-db
     volumes:
-      - postgres_data:/var/lib/postgresql/data/
+      - postgres_16_data:/var/lib/postgresql/data/
     environment:
       - POSTGRES_DB=${DB_NAME}
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
     restart: unless-stopped
   backup:
-    image: docker.io/prodrigestivill/postgres-backup-local:13-alpine
+    image: docker.io/prodrigestivill/postgres-backup-local:16-alpine
     container_name: ${INSTANCE_NAME}-backup
     restart: unless-stopped
     volumes:
@@ -38,4 +38,4 @@ services:
     restart: unless-stopped
 
 volumes:
-  postgres_data:
+  postgres_16_data:
