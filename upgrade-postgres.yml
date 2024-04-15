@@ -1,0 +1,30 @@
+version: "3.6"
+
+services:
+  db_postgres_13:
+    container_name: ${INSTANCE_NAME}-dbold
+    image: postgres:13-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - db_backup:/backup
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+
+  # we add the new database instance
+  db_postgres_16:
+    container_name: ${INSTANCE_NAME}-dbupgrade
+    image: postgres:16-alpine
+    volumes:
+      - postgres_16_data:/var/lib/postgresql/data
+      - db_backup:/backup
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+
+volumes:
+    db_backup:
+    postgres_data:
+    postgres_16_data:
