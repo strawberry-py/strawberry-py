@@ -375,9 +375,7 @@ class Errors(commands.Cog):
 
         return (
             _(utx, "Database error!"),
-            _(utx, "Database has been restored, changes were rolled back.").format(
-                delay=error.retry_after
-            ),
+            _(utx, "Database has been restored, changes were rolled back.").format(),
             ReportTraceback.YES,
         )
 
