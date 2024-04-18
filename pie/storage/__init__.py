@@ -37,6 +37,9 @@ def get(module: commands.Cog, guild_id: int, key: str, default_value=None) -> An
     if not t:
         return default_value
 
+    if t == bool:
+        return db_value.value.lower() == "true"
+
     value = t(db_value.value)
 
     return value
