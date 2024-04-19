@@ -342,6 +342,14 @@ class ConfirmView(discord.ui.View):
                 await self.message.delete()
         return self.value
 
+    async def on_confirm(self, itx: discord.Interaction):
+        """Gets called on confirmation."""
+        pass
+
+    async def on_reject(self, itx: discord.Interaction):
+        """Gets called on confirmation."""
+        pass
+
     async def interaction_check(self, interaction: discord.Interaction) -> None:
         """Gets called when interaction with any of the Views buttons happens."""
         author_id: int = (
@@ -356,15 +364,17 @@ class ConfirmView(discord.ui.View):
             )
             return
 
+        self.stop()
+
         if interaction.data["custom_id"] == "confirm-button":
             self.value = True
+            await self.on_confirm(interaction)
         else:
             self.value = False
+            await self.on_reject(interaction)
 
         # Save interaction for future use
         self.itx = interaction
-
-        self.stop()
 
     async def on_timeout(self) -> None:
         """Gets called when the view timeouts."""
