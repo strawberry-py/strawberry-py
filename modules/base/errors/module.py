@@ -187,11 +187,12 @@ class Errors(commands.Cog):
             print(itx.command.on_error)
             return
 
-        # Get original exception
-        if getattr(error, "original", None):
-            error = error.original
-        elif getattr(error, "__cause__", None):
-            error = error.__cause__
+        if not isinstance(error, discord.DiscordException):
+            # Get original exception
+            if getattr(error, "original", None):
+                error = error.original
+            elif getattr(error, "__cause__", None):
+                error = error.__cause__
 
         # Getting the *original* exception is difficult.
         # Because of how the library is built, walking up the stacktrace gets messy
@@ -228,11 +229,12 @@ class Errors(commands.Cog):
         ):
             return
 
-        # Get original exception
-        if getattr(error, "original", None):
-            error = error.original
-        elif getattr(error, "__cause__", None):
-            error = error.__cause__
+        if not isinstance(error, discord.DiscordException):
+            # Get original exception
+            if getattr(error, "original", None):
+                error = error.original
+            elif getattr(error, "__cause__", None):
+                error = error.__cause__
 
         # Getting the *original* exception is difficult.
         # Because of how the library is built, walking up the stacktrace gets messy
