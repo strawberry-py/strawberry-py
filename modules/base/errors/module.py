@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import List, Tuple
 
 import git
+import git.exc
 import sqlalchemy
 
 import discord
@@ -187,12 +188,15 @@ class Errors(commands.Cog):
             print(itx.command.on_error)
             return
 
+        if getattr(error, "original", None):
+            original_error = error.original
+        elif getattr(error, "__cause__", None):
+            original_error = error.__cause__
+
         if not isinstance(error, discord.DiscordException):
-            # Get original exception
-            if getattr(error, "original", None):
-                error = error.original
-            elif getattr(error, "__cause__", None):
-                error = error.__cause__
+            error = original_error
+        elif isinstance(original_error, git.exc.GitError):
+            error = original_error
 
         # Getting the *original* exception is difficult.
         # Because of how the library is built, walking up the stacktrace gets messy
@@ -229,12 +233,15 @@ class Errors(commands.Cog):
         ):
             return
 
+        if getattr(error, "original", None):
+            original_error = error.original
+        elif getattr(error, "__cause__", None):
+            original_error = error.__cause__
+
         if not isinstance(error, discord.DiscordException):
-            # Get original exception
-            if getattr(error, "original", None):
-                error = error.original
-            elif getattr(error, "__cause__", None):
-                error = error.__cause__
+            error = original_error
+        elif isinstance(original_error, git.exc.GitError):
+            error = original_error
 
         # Getting the *original* exception is difficult.
         # Because of how the library is built, walking up the stacktrace gets messy
@@ -286,7 +293,7 @@ class Errors(commands.Cog):
         if isinstance(error, sqlalchemy.exc.SQLAlchemyError):
             return await Errors.handle_DatabaseException(utx, error)
 
-        if isinstance(error, git.GitError):
+        if isinstance(error, git.exc.GitError):
             return await Errors.handle_GitException(utx, error)
 
         # Other errors
