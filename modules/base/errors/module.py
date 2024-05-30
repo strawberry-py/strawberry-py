@@ -233,15 +233,18 @@ class Errors(commands.Cog):
         ):
             return
 
+        original_error = None
+
         if getattr(error, "original", None):
             original_error = error.original
         elif getattr(error, "__cause__", None):
             original_error = error.__cause__
 
-        if not isinstance(error, discord.DiscordException):
-            error = original_error
-        elif isinstance(original_error, git.exc.GitError):
-            error = original_error
+        if original_error is not None:
+            if not isinstance(error, discord.DiscordException):
+                error = original_error
+            elif isinstance(original_error, git.exc.GitError):
+                error = original_error
 
         # Getting the *original* exception is difficult.
         # Because of how the library is built, walking up the stacktrace gets messy
