@@ -193,14 +193,15 @@ class Errors(commands.Cog):
         elif getattr(error, "__cause__", None):
             original_error = error.__cause__
 
-        if not isinstance(error, discord.DiscordException):
-            error = original_error
-        elif isinstance(original_error, git.exc.GitError):
-            error = original_error
-        elif isinstance(original_error, commands.ExtensionNotFound):
-            error = original_error
-        elif isinstance(original_error, commands.ExtensionNotLoaded):
-            error = original_error
+        if original_error is not None:
+            if not isinstance(error, discord.DiscordException):
+                error = original_error
+            elif isinstance(original_error, git.exc.GitError):
+                error = original_error
+            elif isinstance(original_error, commands.errors.ExtensionNotFound):
+                error = original_error
+            elif isinstance(original_error, commands.errors.ExtensionNotLoaded):
+                error = original_error
 
         # Getting the *original* exception is difficult.
         # Because of how the library is built, walking up the stacktrace gets messy
@@ -248,6 +249,10 @@ class Errors(commands.Cog):
             if not isinstance(error, discord.DiscordException):
                 error = original_error
             elif isinstance(original_error, git.exc.GitError):
+                error = original_error
+            elif isinstance(original_error, commands.errors.ExtensionNotFound):
+                error = original_error
+            elif isinstance(original_error, commands.errors.ExtensionNotLoaded):
                 error = original_error
 
         # Getting the *original* exception is difficult.
