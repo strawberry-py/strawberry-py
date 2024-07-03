@@ -197,6 +197,8 @@ class Errors(commands.Cog):
             error = original_error
         elif isinstance(original_error, git.exc.GitError):
             error = original_error
+        elif isinstance(original_error, commands.ExtensionNotFound):
+            error = original_error
         elif isinstance(original_error, commands.ExtensionNotLoaded):
             error = original_error
 
