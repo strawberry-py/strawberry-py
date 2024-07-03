@@ -197,6 +197,8 @@ class Errors(commands.Cog):
             error = original_error
         elif isinstance(original_error, git.exc.GitError):
             error = original_error
+        elif isinstance(original_error, commands.ExtensionNotLoaded):
+            error = original_error
 
         # Getting the *original* exception is difficult.
         # Because of how the library is built, walking up the stacktrace gets messy
