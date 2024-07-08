@@ -14,4 +14,5 @@ RUN apt-get update && apt-get -y --no-install-recommends install \
     && git config --global --add safe.directory '*'
 
 COPY entrypoint.sh /entrypoint
+RUN chmod +x /entrypoint
 ENTRYPOINT ["/entrypoint"]
