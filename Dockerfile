@@ -13,6 +13,8 @@ RUN apt-get update && apt-get -y --no-install-recommends install \
     && apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/* \
     && git config --global --add safe.directory '*'
 
+RUN ["chmod", "+x", "entrypoint.sh"]
+
 COPY entrypoint.sh /entrypoint
-RUN chmod +x /entrypoint
-ENTRYPOINT ["/entrypoint"]
+RUN ["chmod", "+x", "/entrypoint"]
+ENTRYPOINT ["sh", "/entrypoint"]
