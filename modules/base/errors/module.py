@@ -188,6 +188,8 @@ class Errors(commands.Cog):
             print(itx.command.on_error)
             return
 
+        original_error = None
+
         if getattr(error, "original", None):
             original_error = error.original
         elif getattr(error, "__cause__", None):
@@ -244,6 +246,8 @@ class Errors(commands.Cog):
             original_error = error.original
         elif getattr(error, "__cause__", None):
             original_error = error.__cause__
+
+        original_error = None
 
         if original_error is not None:
             if not isinstance(error, discord.DiscordException):
