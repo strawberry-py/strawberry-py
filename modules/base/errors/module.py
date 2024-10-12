@@ -200,6 +200,8 @@ class Errors(commands.Cog):
                 error = original_error
             elif isinstance(original_error, git.exc.GitError):
                 error = original_error
+            elif isinstance(original_error, commands.errors.ExtensionAlreadyLoaded):
+                error = original_error
             elif isinstance(original_error, commands.errors.ExtensionNotFound):
                 error = original_error
             elif isinstance(original_error, commands.errors.ExtensionNotLoaded):
@@ -253,6 +255,8 @@ class Errors(commands.Cog):
             if not isinstance(error, discord.DiscordException):
                 error = original_error
             elif isinstance(original_error, git.exc.GitError):
+                error = original_error
+            elif isinstance(original_error, commands.errors.ExtensionAlreadyLoaded):
                 error = original_error
             elif isinstance(original_error, commands.errors.ExtensionNotFound):
                 error = original_error
