@@ -188,30 +188,7 @@ class Errors(commands.Cog):
             print(itx.command.on_error)
             return
 
-        original_error = None
-
-        if getattr(error, "original", None):
-            original_error = error.original
-        elif getattr(error, "__cause__", None):
-            original_error = error.__cause__
-
-        if original_error is not None:
-            if not isinstance(error, discord.DiscordException):
-                error = original_error
-            elif isinstance(original_error, git.exc.GitError):
-                error = original_error
-            elif isinstance(original_error, commands.errors.ExtensionAlreadyLoaded):
-                error = original_error
-            elif isinstance(original_error, commands.errors.ExtensionNotFound):
-                error = original_error
-            elif isinstance(original_error, commands.errors.ExtensionNotLoaded):
-                error = original_error
-
-        # Getting the *original* exception is difficult.
-        # Because of how the library is built, walking up the stacktrace gets messy
-        # by entering '_run_event' and other internal functions. This means that this
-        # 'error' is the last line that raised an exception, not the initial cause.
-        # Tracebacks are logged, this is good enough.
+        error: Exception = self.get_correct_error(error)
 
         if type(error) in IGNORED_EXCEPTIONS:
             return
@@ -242,26 +219,7 @@ class Errors(commands.Cog):
         ):
             return
 
-        original_error = None
-
-        if getattr(error, "original", None):
-            original_error = error.original
-        elif getattr(error, "__cause__", None):
-            original_error = error.__cause__
-
-        original_error = None
-
-        if original_error is not None:
-            if not isinstance(error, discord.DiscordException):
-                error = original_error
-            elif isinstance(original_error, git.exc.GitError):
-                error = original_error
-            elif isinstance(original_error, commands.errors.ExtensionAlreadyLoaded):
-                error = original_error
-            elif isinstance(original_error, commands.errors.ExtensionNotFound):
-                error = original_error
-            elif isinstance(original_error, commands.errors.ExtensionNotLoaded):
-                error = original_error
+        error: Exception = self.get_correct_error(error)
 
         # Getting the *original* exception is difficult.
         # Because of how the library is built, walking up the stacktrace gets messy
@@ -1350,6 +1308,33 @@ class Errors(commands.Cog):
                 ),
                 exception=error,
             )
+
+    def get_correct_error(self, error):
+        # Getting the *original* exception is difficult.
+        # Because of how the library is built, walking up the stacktrace gets messy
+        # by entering '_run_event' and other internal functions. This means that this
+        # 'error' is the last line that raised an exception, not the initial cause.
+        # Tracebacks are logged, this is good enough.
+        original_error = None
+
+        if getattr(error, "original", None):
+            original_error = error.original
+        elif getattr(error, "__cause__", None):
+            original_error = error.__cause__
+
+        if original_error:
+            if not isinstance(error, discord.DiscordException):
+                error = original_error
+            elif isinstance(original_error, git.exc.GitError):
+                error = original_error
+            elif isinstance(original_error, commands.errors.ExtensionAlreadyLoaded):
+                error = original_error
+            elif isinstance(original_error, commands.errors.ExtensionNotFound):
+                error = original_error
+            elif isinstance(original_error, commands.errors.ExtensionNotLoaded):
+                error = original_error
+
+        return error
 
 
 async def setup(bot) -> None:
