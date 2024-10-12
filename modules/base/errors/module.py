@@ -446,14 +446,14 @@ class Errors(commands.Cog):
         if isinstance(error, discord.HTTPException):
             return await Errors.handle_HTTPException(utx, error)
 
+        if isinstance(error, commands.ExtensionError):
+            return await Errors.handle_ExtensionError(utx, error)
+
         if isinstance(error, app_commands.AppCommandError):
             return await Errors.handle_AppCommandError(utx, error)
 
         if isinstance(error, commands.CommandError):
             return await Errors.handle_CommandError(utx, error)
-
-        if isinstance(error, commands.ExtensionError):
-            return await Errors.handle_ExtensionError(utx, error)
 
         return (
             _(utx, "Error"),
