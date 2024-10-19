@@ -6,6 +6,8 @@ from sqlalchemy import Column, Integer, String
 
 from pie.database import database, session
 
+VERSION = 1
+
 
 class Config(database.base):
     """Global bot configuration."""

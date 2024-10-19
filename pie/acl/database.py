@@ -7,6 +7,8 @@ from sqlalchemy import BigInteger, Boolean, Column, Enum, Integer, String
 
 from pie.database import database, session
 
+VERSION = 1
+
 
 class ACLevel(enum.IntEnum):
     BOT_OWNER: int = 5

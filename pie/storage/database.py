@@ -6,6 +6,8 @@ from sqlalchemy import BigInteger, Column, String
 
 from pie.database import database, session
 
+VERSION = 1
+
 
 class StorageData(database.base):
     __tablename__ = "pie_storage_data"
