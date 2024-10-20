@@ -10,11 +10,15 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, sess
 from pie.cli import COLOR
 
 
+class Base(DeclarativeBase):
+    pass
+
+
 class Database:
     """Main database connector."""
 
     def __init__(self):
-        self.base = DeclarativeBase
+        self.base: DeclarativeBase = Base
         self.db: Engine = create_engine(
             os.getenv("DB_STRING"),
         )
