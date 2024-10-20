@@ -6,6 +6,8 @@ from sqlalchemy import BigInteger, Column, Integer, String
 
 from pie.database import database, session
 
+VERSION = 1
+
 
 class GuildLanguage(database.base):
     """Language preference for the guild.

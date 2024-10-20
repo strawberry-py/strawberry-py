@@ -6,6 +6,8 @@ from sqlalchemy import BigInteger, Boolean, Column, Integer, UniqueConstraint
 
 from pie.database import database, session
 
+VERSION = 1
+
 
 class SpamChannel(database.base):
     __tablename__ = "spamchannels"
