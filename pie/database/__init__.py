@@ -61,16 +61,7 @@ class DatabaseVersion(database.base):
         :module_name: Name of the module (with dots as path separators)
         :db_version: Version of the DB to set
         """
-        db_version = (
-            session.query(DatabaseVersion)
-            .filter_by(module_name=module_name)
-            .one_or_none()
-        )
-        if not db_version:
-            db_version = DatabaseVersion(module_name=module_name, version=1)
-
-        db_version.version = version
-
+        db_version = DatabaseVersion(module_name=module_name, version=version)
         session.merge(db_version)
         session.commit()
 
