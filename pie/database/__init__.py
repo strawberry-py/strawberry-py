@@ -5,26 +5,22 @@ import os
 from typing import List
 
 from sqlalchemy import Engine, String, create_engine, inspect
-from sqlalchemy.orm import (
-    Mapped,
-    Session,
-    declarative_base,
-    mapped_column,
-    sessionmaker,
-)
+from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, sessionmaker
 
 from pie.cli import COLOR
+
+
+class Base(DeclarativeBase):
+    pass
 
 
 class Database:
     """Main database connector."""
 
     def __init__(self):
-        self.base = declarative_base()
+        self.base: DeclarativeBase = Base
         self.db: Engine = create_engine(
             os.getenv("DB_STRING"),
-            # This forces the SQLAlchemy 1.4 to use the 2.0 syntax
-            future=True,
         )
 
 
@@ -146,12 +142,13 @@ def _import_database(module_name: str):
                 module_name=module_name, version=module_version
             )
 
-        current_version = db_version.version if db_version else 1
+        if db_version is None:
+            db_version = DatabaseVersion.set(module_name=module_name, version=1)
 
         database.base.metadata.create_all(database.db)
         session.commit()
 
-        for version in range(current_version, module_version):
+        for version in range(db_version.version, module_version):
             print(
                 f"Updating database models {COLOR.green}{module_name}{COLOR.none}"
                 + f" from version {COLOR.green}{version}{COLOR.none}"
