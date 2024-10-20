@@ -17,8 +17,6 @@ class Database:
         self.base = DeclarativeBase
         self.db: Engine = create_engine(
             os.getenv("DB_STRING"),
-            # This forces the SQLAlchemy 1.4 to use the 2.0 syntax
-            future=True,
         )
 
 
