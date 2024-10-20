@@ -142,12 +142,13 @@ def _import_database(module_name: str):
                 module_name=module_name, version=module_version
             )
 
-        current_version = db_version.version if db_version else 1
+        if db_version is None:
+            db_version = DatabaseVersion.set(module_name=module_name, version=1)
 
         database.base.metadata.create_all(database.db)
         session.commit()
 
-        for version in range(current_version, module_version):
+        for version in range(db_version.version, module_version):
             print(
                 f"Updating database models {COLOR.green}{module_name}{COLOR.none}"
                 + f" from version {COLOR.green}{version}{COLOR.none}"
