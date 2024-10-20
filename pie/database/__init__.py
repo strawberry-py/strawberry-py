@@ -5,13 +5,7 @@ import os
 from typing import List
 
 from sqlalchemy import Engine, String, create_engine, inspect
-from sqlalchemy.orm import (
-    Mapped,
-    Session,
-    declarative_base,
-    mapped_column,
-    sessionmaker,
-)
+from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, sessionmaker
 
 from pie.cli import COLOR
 
@@ -20,7 +14,7 @@ class Database:
     """Main database connector."""
 
     def __init__(self):
-        self.base = declarative_base()
+        self.base = DeclarativeBase
         self.db: Engine = create_engine(
             os.getenv("DB_STRING"),
             # This forces the SQLAlchemy 1.4 to use the 2.0 syntax
