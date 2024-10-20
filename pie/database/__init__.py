@@ -4,8 +4,14 @@ import importlib
 import os
 from typing import List
 
-from sqlalchemy import Column, Engine, Integer, String, create_engine, inspect
-from sqlalchemy.orm import Session, declarative_base, sessionmaker
+from sqlalchemy import Engine, String, create_engine, inspect
+from sqlalchemy.orm import (
+    Mapped,
+    Session,
+    declarative_base,
+    mapped_column,
+    sessionmaker,
+)
 
 from pie.cli import COLOR
 
@@ -34,8 +40,8 @@ class DatabaseVersion(database.base):
     """
 
     __tablename__ = "database_versions"
-    module_name = Column(String, primary_key=True)
-    version = Column(Integer)
+    module_name: Mapped[str] = mapped_column(String, primary_key=True)
+    version: Mapped[int]
 
     def get(module_name: str) -> DatabaseVersion:
         """Returns the current version for DB stub.
