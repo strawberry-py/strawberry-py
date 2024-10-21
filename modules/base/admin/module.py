@@ -390,35 +390,41 @@ class Admin(commands.Cog):
 
     @check.acl2(check.ACLevel.BOT_OWNER)
     @module_.command(name="load")
-    async def module_load(self, ctx, name: str):
-        """Load module. Use format <repository>.<module>."""
+    async def module_load(self, ctx, name: str, sync: bool = False):
+        """Load module. Use format <repository>.<module>.
+        When sync is True, bot performs Slash commands tree sync."""
         await self.bot.load_extension("modules." + name + ".module")
-        await self.bot.tree.sync()
+        if sync:
+            await self.bot.tree.sync()
         await ctx.send(_(ctx, "Module **{name}** has been loaded.").format(name=name))
         Module.add(name, enabled=True)
         await bot_log.info(ctx.author, ctx.channel, "Loaded " + name)
 
     @check.acl2(check.ACLevel.BOT_OWNER)
     @module_.command(name="unload")
-    async def module_unload(self, ctx, name: str):
-        """Unload module. Use format <repository>.<module>."""
+    async def module_unload(self, ctx, name: str, sync: bool = False):
+        """Unload module. Use format <repository>.<module>.
+        When sync is True, bot performs Slash commands tree sync."""
         if name in ("base.admin",):
             await ctx.send(
                 _(ctx, "Module **{name}** cannot be unloaded.").format(name=name)
             )
             return
         await self.bot.unload_extension("modules." + name + ".module")
-        await self.bot.tree.sync()
+        if sync:
+            await self.bot.tree.sync()
         await ctx.send(_(ctx, "Module **{name}** has been unloaded.").format(name=name))
         Module.add(name, enabled=False)
         await bot_log.info(ctx.author, ctx.channel, "Unloaded " + name)
 
     @check.acl2(check.ACLevel.BOT_OWNER)
     @module_.command(name="reload")
-    async def module_reload(self, ctx, name: str):
-        """Reload bot module. Use format <repository>.<module>."""
+    async def module_reload(self, ctx, name: str, sync: bool = False):
+        """Reload bot module. Use format <repository>.<module>.
+        When sync is True, bot performs Slash commands tree sync."""
         await self.bot.reload_extension("modules." + name + ".module")
-        await self.bot.tree.sync()
+        if sync:
+            await self.bot.tree.sync()
         await ctx.send(_(ctx, "Module **{name}** has been reloaded.").format(name=name))
         await bot_log.info(ctx.author, ctx.channel, "Reloaded " + name)
 
