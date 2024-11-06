@@ -33,3 +33,5 @@ python3 -m pip install -q -r /tempdir/requirements.txt --user --no-warn-script-l
 
 echo "Starting strawberry-py"
 cd /strawberry-py && python3 strawberry.py
+RETURN_CODE=$?
+exit $RETURN_CODE

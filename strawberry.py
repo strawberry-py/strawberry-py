@@ -103,6 +103,12 @@ del root_path
 
 async def main():
     await Strawberry().start()
+    return Strawberry().restart
 
 
-asyncio.run(main())
+result = asyncio.run(main())
+
+print(f"Exit code: {result}")
+if result:
+    print("The bot should restart.")
+exit(result)

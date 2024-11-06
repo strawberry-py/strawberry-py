@@ -22,6 +22,7 @@ class Strawberry(commands.Bot):
     config: Config
     loaded: bool = False
     bot: Strawberry
+    restart: int = 0
 
     def __new__(cls):
         if not hasattr(cls, "bot"):

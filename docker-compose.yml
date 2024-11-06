@@ -35,7 +35,7 @@ services:
       - ./:/strawberry-py/:z
     depends_on:
       - db
-    restart: unless-stopped
+    restart: on-failure
 
 volumes:
   postgres_16_data:
