@@ -102,8 +102,10 @@ del root_path
 
 
 async def main():
-    await Strawberry().start()
+    async with Strawberry():
+        await Strawberry().start()
     return Strawberry().restart
+
 
 try:
     result = asyncio.run(main())

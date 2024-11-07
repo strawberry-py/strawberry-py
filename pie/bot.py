@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-import asyncio
 import datetime
 import importlib
 import os
 import signal
 import sys
 import traceback
+from functools import partial
 
 import sqlalchemy
 
@@ -54,8 +54,15 @@ class Strawberry(commands.Bot):
         self.guild_log = logger.Guild.logger(self)
 
     async def setup_hook(self):
-        self.loop.add_signal_handler(signal.SIGINT, lambda: asyncio.create_task(self.close()))
-        self.loop.add_signal_handler(signal.SIGTERM, lambda: asyncio.create_task(self.close()))
+        self.loop.add_signal_handler(
+            signal.SIGINT, partial(self.handle_signal, "SIGINT")
+        )
+        self.loop.add_signal_handler(
+            signal.SIGTERM, partial(self.handle_signal, "SIGTERM")
+        )
+
+    def handle_signal(self, signal):
+        self.loop.create_task(self.close(signal))
 
     async def update_app_info(self):
         # Update bot information
@@ -65,19 +72,10 @@ class Strawberry(commands.Bot):
         else:
             self.owner_ids = {app.owner.id}
 
-    async def close(self) -> None:
-        await self.bot_log.warning(None, None, "Stopping the bot!")
-        try:
-            # The WebSocket must be closed manually here to prevent unclosed connectors
-            task = asyncio.create_task(self.ws.close(code=1000))
-            shielded = asyncio.shield(task)
-            await shielded
-            # Protect the super().close() against cancellation
-            task2 = asyncio.create_task(super().close())
-            shielded2 = asyncio.shield(task2)
-            await shielded2
-        except asyncio.exceptions.CancelledError:
-            pass
+    async def close(self, signal: str = None) -> None:
+        message = f"Signal{signal} received. " if signal else ""
+        await self.bot_log.critical(None, None, message + "The pie is shutting down!")
+        await super().close()
 
     async def change_presence(
         self,
