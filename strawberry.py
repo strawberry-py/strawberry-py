@@ -105,10 +105,12 @@ async def main():
     await Strawberry().start()
     return Strawberry().restart
 
-
-result = asyncio.run(main())
+try:
+    result = asyncio.run(main())
+except asyncio.exceptions.CancelledError:
+    print("Strawberry-py process was interrupted.")
 
 print(f"Exit code: {result}")
 if result:
-    print("The bot should restart.")
+    print("The strawberry-py should restart.")
 exit(result)

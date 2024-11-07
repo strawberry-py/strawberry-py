@@ -32,6 +32,5 @@ echo "Installing module requirements"
 python3 -m pip install -q -r /tempdir/requirements.txt --user --no-warn-script-location --no-cache-dir --root-user-action=ignore
 
 echo "Starting strawberry-py"
-cd /strawberry-py && python3 strawberry.py
-RETURN_CODE=$?
-exit $RETURN_CODE
+cd /strawberry-py
+exec python3 strawberry.py

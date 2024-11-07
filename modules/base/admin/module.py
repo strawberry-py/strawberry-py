@@ -524,7 +524,7 @@ class Admin(commands.Cog):
     @strawberry_.command(name="restart")
     async def strawberry_restart(self, ctx):
         """Restart bot instance with the help of host system."""
-        await bot_log.critical(ctx.author, ctx.channel, "Restarting.")
+        await bot_log.critical(ctx.author, ctx.channel, "Initiated restart.")
         self.bot.restart = 1
         await self.bot.close()
 
@@ -532,7 +532,7 @@ class Admin(commands.Cog):
     @strawberry_.command(name="shutdown")
     async def strawberry_shutdown(self, ctx):
         """Shutdown bot instance."""
-        await bot_log.critical(ctx.author, ctx.channel, "Shutting down.")
+        await bot_log.critical(ctx.author, ctx.channel, "Initiated shutdown.")
         await self.bot.close()
 
     @commands.guild_only()
