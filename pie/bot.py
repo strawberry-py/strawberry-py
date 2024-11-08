@@ -83,7 +83,7 @@ class Strawberry(commands.Bot):
         :param reason: Reason for shutting down / closing.
         """
         await self.bot_log.critical(
-            None, None, f"The pie is shutting down! Reason: {reason}"
+            None, None, f"The pie is shutting down! Reason: {reason}."
         )
         await super().close()
 
