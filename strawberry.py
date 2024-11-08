@@ -111,6 +111,8 @@ try:
     result = asyncio.run(main())
 except asyncio.exceptions.CancelledError:
     print("Strawberry-py process was interrupted.")
+except Exception:
+    result = 2
 
 print(f"Exit code: {result}")
 if result:
