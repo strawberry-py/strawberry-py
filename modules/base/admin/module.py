@@ -29,8 +29,8 @@ class Admin(commands.Cog):
 
     bot: Strawberry
 
-    def __init__(self, bot):
-        self.bot = bot
+    def __init__(self, bot: Strawberry):
+        self.bot: Strawberry = bot
 
         self.status = ""
         if config.status == "auto":
@@ -522,17 +522,18 @@ class Admin(commands.Cog):
 
     @check.acl2(check.ACLevel.BOT_OWNER)
     @strawberry_.command(name="restart")
-    async def strawberry_restart(self, ctx):
+    async def strawberry_restart(self, ctx: commands.Context):
         """Restart bot instance with the help of host system."""
-        await bot_log.critical(ctx.author, ctx.channel, "Restarting.")
-        exit(1)
+        await bot_log.critical(ctx.author, ctx.channel, "Initiated restart.")
+        self.bot.exit_code = 1
+        await self.bot.close(reason="user initiated restart")
 
     @check.acl2(check.ACLevel.BOT_OWNER)
     @strawberry_.command(name="shutdown")
-    async def strawberry_shutdown(self, ctx):
+    async def strawberry_shutdown(self, ctx: commands.Context):
         """Shutdown bot instance."""
-        await bot_log.critical(ctx.author, ctx.channel, "Shutting down.")
-        exit(0)
+        await bot_log.critical(ctx.author, ctx.channel, "Initiated shutdown.")
+        await self.bot.close(reason="user initiated shutdown")
 
     @commands.guild_only()
     @check.acl2(check.ACLevel.SUBMOD)
@@ -645,5 +646,5 @@ class Admin(commands.Cog):
         )
 
 
-async def setup(bot) -> None:
+async def setup(bot: Strawberry) -> None:
     await bot.add_cog(Admin(bot))

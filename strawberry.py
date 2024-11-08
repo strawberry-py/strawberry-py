@@ -102,7 +102,19 @@ del root_path
 
 
 async def main():
-    await Strawberry().start()
+    async with Strawberry():
+        await Strawberry().start()
+    return Strawberry().exit_code
 
 
-asyncio.run(main())
+try:
+    result = asyncio.run(main())
+except asyncio.exceptions.CancelledError:
+    print("Strawberry-py process was interrupted.")
+except Exception:
+    result = 2
+
+print(f"Exit code: {result}")
+if result:
+    print("The strawberry-py should restart.")
+exit(result)
