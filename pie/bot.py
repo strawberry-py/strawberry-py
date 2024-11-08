@@ -54,14 +54,19 @@ class Strawberry(commands.Bot):
         self.guild_log = logger.Guild.logger(self)
 
     async def setup_hook(self):
+        """Add asyncio signal handlers and call parent method."""
         self.loop.add_signal_handler(
             signal.SIGINT, partial(self.handle_signal, "received SIGINT")
         )
         self.loop.add_signal_handler(
             signal.SIGTERM, partial(self.handle_signal, "received SIGTERM")
         )
+        super().setup_hook()
 
     def handle_signal(self, signal):
+        """Helper function that creates task to close the bot
+        in case interupt signals are raised.
+        """
         self.loop.create_task(self.close(signal))
 
     async def update_app_info(self):
@@ -73,6 +78,10 @@ class Strawberry(commands.Bot):
             self.owner_ids = {app.owner.id}
 
     async def close(self, reason: str = "unknown") -> None:
+        """Overrides parent to add logging info on shutdown / close.
+
+        :param reason: Reason for shutting down / closing.
+        """
         await self.bot_log.critical(
             None, None, f"The pie is shutting down! Reason: {reason}"
         )
