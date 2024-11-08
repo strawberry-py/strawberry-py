@@ -525,7 +525,7 @@ class Admin(commands.Cog):
     async def strawberry_restart(self, ctx):
         """Restart bot instance with the help of host system."""
         await bot_log.critical(ctx.author, ctx.channel, "Initiated restart.")
-        self.bot.restart = 1
+        self.bot.exit_code = 1
         await self.bot.close()
 
     @check.acl2(check.ACLevel.BOT_OWNER)

@@ -104,7 +104,7 @@ del root_path
 async def main():
     async with Strawberry():
         await Strawberry().start()
-    return Strawberry().restart
+    return Strawberry().exit_code
 
 
 try:
