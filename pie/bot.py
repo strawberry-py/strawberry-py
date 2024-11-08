@@ -55,10 +55,10 @@ class Strawberry(commands.Bot):
 
     async def setup_hook(self):
         self.loop.add_signal_handler(
-            signal.SIGINT, partial(self.handle_signal, "SIGINT")
+            signal.SIGINT, partial(self.handle_signal, "received SIGINT")
         )
         self.loop.add_signal_handler(
-            signal.SIGTERM, partial(self.handle_signal, "SIGTERM")
+            signal.SIGTERM, partial(self.handle_signal, "received SIGTERM")
         )
 
     def handle_signal(self, signal):
@@ -72,9 +72,10 @@ class Strawberry(commands.Bot):
         else:
             self.owner_ids = {app.owner.id}
 
-    async def close(self, signal: str = None) -> None:
-        message = f"Signal{signal} received. " if signal else ""
-        await self.bot_log.critical(None, None, message + "The pie is shutting down!")
+    async def close(self, reason: str = "unknown") -> None:
+        await self.bot_log.critical(
+            None, None, f"The pie is shutting down! Reason: {reason}"
+        )
         await super().close()
 
     async def change_presence(
