@@ -4,6 +4,7 @@ name: Docker Validator
 on:
   workflow_dispatch:
   push:
+    branches: [main]
     paths:
       - "**/Dockerfile"
       - "**/docker-test.yml"
@@ -30,4 +31,4 @@ jobs:
         lint: 'hadolint'
 
     - name: Docker-compose validator
-      run: touch .env && docker-compose config
+      run: cp default.docker.env .env && docker compose config
