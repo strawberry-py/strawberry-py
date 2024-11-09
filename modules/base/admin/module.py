@@ -303,8 +303,8 @@ class Admin(commands.Cog):
         requirements_txt_hash: str = repo.requirements_txt_hash
         loop = self.bot.loop
         async with ctx.typing():
-            await ctx.reply(
-                _(ctx, "Updating repository: *{repo}*.").format(repo=repo.name)
+            await ctx.send(
+                _(ctx, "Updating repository: **{repo}**.").format(repo=repo.name)
             )
             if option == "reset":
                 pull = loop.run_in_executor(None, repo.git_reset_pull)
