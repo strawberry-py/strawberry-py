@@ -245,14 +245,59 @@ class Admin(commands.Cog):
                 ),
             )
 
+    async def _update_repo(
+        self, ctx: commands.Context, repo: Repository, option: str = None
+    ):
+        """Helper function to update repository.
+
+        :param ctx: Commands context
+        :param repo: Repository to update
+        :param option: Git Pull options  (reset, force or None)
+        """
+        requirements_txt_hash: str = repo.requirements_txt_hash
+        async with ctx.typing():
+            if option == "reset":
+                pull: str = repo.git_reset_pull()
+            else:
+                pull: str = repo.git_pull(option == "force")
+        for output in utils.text.split(pull):
+            await ctx.send("```" + output + "```")
+
+        manager.refresh()
+
+        requirements_txt_updated: bool = False
+        if repo.requirements_txt_hash != requirements_txt_hash:
+            await ctx.send(_(ctx, "File `requirements.txt` changed, running `pip`."))
+            requirements_txt_updated = True
+
+            async with ctx.typing():
+                install: str = repo.install_requirements()
+                if install is not None:
+                    for output in utils.text.split(install):
+                        await ctx.send("```" + output + "```")
+
+        if output == "Already up to date.":
+            log_message: str = (
+                f"Repository {repo.name} already up to date: "
+                + str(repo.head_commit)[:7]
+            )
+        else:
+            log_message: str = f"Repository {repo.name} updated: " + output[10:25]
+
+        if requirements_txt_updated:
+            log_message += " requirements.txt differed, pip was run."
+        await bot_log.info(ctx.author, ctx.channel, log_message)
+
     @commands.max_concurrency(1, per=commands.BucketType.default, wait=False)
     @check.acl2(check.ACLevel.BOT_OWNER)
     @repository_.command(name="update", aliases=["fetch", "pull"])
-    async def repository_update(self, ctx, name: str, option: Optional[str]):
-        """Update module repository.
+    async def repository_update(
+        self, ctx: commands.Context, name: str, option: Optional[str]
+    ):
+        """Update module repository. It's highly recommended to restart the bot afterwards.
 
         Args:
-            name: Repository name
+            name: Repository name, use `*` for all repositories.
             option: Optional update type (FORCE = force pull, RESET = hard reset)
         """
         if option:
@@ -263,46 +308,17 @@ class Admin(commands.Cog):
                 )
                 return
 
-        repository: Optional[Repository] = manager.get_repository(name)
-        if repository is None:
-            await ctx.reply(_(ctx, "No such repository."))
-            return
+        if name == "*":
+            await ctx.reply(_(ctx, "Updating all repositories."))
+            for repo in manager.repositories:
+                self._update_repo(ctx=ctx, repo=repo, option=option)
 
-        requirements_txt_hash: str = repository.requirements_txt_hash
-
-        async with ctx.typing():
-            if option == "reset":
-                pull: str = repository.git_reset_pull()
-            else:
-                pull: str = repository.git_pull(option == "force")
-        for output in utils.text.split(pull):
-            await ctx.send("```" + output + "```")
-
-        manager.refresh()
-
-        requirements_txt_updated: bool = False
-        if repository.requirements_txt_hash != requirements_txt_hash:
-            await ctx.send(_(ctx, "File `requirements.txt` changed, running `pip`."))
-            requirements_txt_updated = True
-
-            async with ctx.typing():
-                install: str = repository.install_requirements()
-                if install is not None:
-                    for output in utils.text.split(install):
-                        await ctx.send("```" + output + "```")
-
-        if output == "Already up to date.":
-            log_message: str = (
-                f"Repository {name} already up to date: "
-                + str(repository.head_commit)[:7]
-            )
         else:
-            log_message: str = f"Repository {name} updated: " + output[10:25]
-
-        if requirements_txt_updated:
-            log_message += " requirements.txt differed, pip was run."
-
-        await bot_log.info(ctx.author, ctx.channel, log_message)
+            repo: Optional[Repository] = manager.get_repository(name)
+            if repo is None:
+                await ctx.reply(_(ctx, "No such repository."))
+                return
+            self._update_repo(ctx=ctx, repo=repo, option=option)
 
     @check.acl2(check.ACLevel.BOT_OWNER)
     @repository_.command(name="checkout")
