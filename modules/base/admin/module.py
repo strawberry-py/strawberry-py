@@ -1,5 +1,6 @@
 import shutil
 import tempfile
+from functools import partial
 from pathlib import Path
 from typing import List, Optional, Set
 
@@ -36,12 +37,33 @@ class Admin(commands.Cog):
         if config.status == "auto":
             self.status_loop.start()
         self.send_manager_log.start()
+        self.check_updates.start()
 
     def cog_unload(self):
         """Cancel status loop on unload."""
         self.status_loop.cancel()
+        self.check_updates.cancel()
 
     # Loops
+
+    @tasks.loop(hours=24)
+    async def check_updates(self):
+        outdated: list[str] = []
+        loop = self.bot.loop
+        for repo in manager.repositories:
+            status = loop.run_in_executor(None, repo.git_status)
+            ahead, behind = await status
+            if not (ahead == behind == 0):
+                outdated.append(repo.name)
+
+        await bot_log.warning(
+            None, None, "Found outdated repositories: " + ", ".join(outdated)
+        )
+
+    @check_updates.before_loop
+    async def before_check_updates(self):
+        if not self.bot.is_ready():
+            await self.bot.wait_until_ready()
 
     @tasks.loop(minutes=1)
     async def send_manager_log(self):
@@ -96,85 +118,107 @@ class Admin(commands.Cog):
     @commands.guild_only()
     @check.acl2(check.ACLevel.BOT_OWNER)
     @commands.group(name="repository", aliases=["repo"])
-    async def repository_(self, ctx):
+    async def repository_(self, ctx: commands.Context):
         """Manage module repositories."""
         await utils.discord.send_help(ctx)
 
     @check.acl2(check.ACLevel.BOT_OWNER)
     @repository_.command(name="list")
-    async def repository_list(self, ctx):
-        """List module repositories."""
-        repositories: List[Repository] = manager.repositories
+    async def repository_list(self, ctx: commands.Context, update_remote: bool = False):
+        """List module repositories.
 
-        # This allows us to print non-loaded modules in *italics* and loaded
-        # (and thus available) in regular font.
-        loaded_modules: Set[str] = set(
-            [
-                cog.__module__[8:-7]  # strip 'modules.' & '.module' from the name
-                for cog in sorted(self.bot.cogs.values(), key=lambda m: m.__module__)
-            ]
-        )
+        Args:
+            update_remote: Update remote repo info before version check (default: False)
+        """
+        async with ctx.typing():
+            repositories: List[Repository] = manager.repositories
 
-        class Item:
-            def __init__(self, repository: Repository, line: int):
-                if line == 0:
-                    self.name = repository.name
-                else:
-                    self.name = ""
-
-                if line == 0 or line == 1:
-                    modules: List[str] = []
-                    for module_name in repository.module_names:
-                        full_module_name: str = f"{repository.name}.{module_name}"
-                        if line == 0 and full_module_name in loaded_modules:
-                            modules.append(module_name)
-                        if line == 1 and full_module_name not in loaded_modules:
-                            modules.append(module_name)
-
-                    self.key = (
-                        _(ctx, "loaded modules")
-                        if line == 0
-                        else _(ctx, "unloaded modules")
+            # This allows us to print non-loaded modules in *italics* and loaded
+            # (and thus available) in regular font.
+            loaded_modules: Set[str] = set(
+                [
+                    cog.__module__[8:-7]  # strip 'modules.' & '.module' from the name
+                    for cog in sorted(
+                        self.bot.cogs.values(), key=lambda m: m.__module__
                     )
-                    self.values = ", ".join(modules) if modules else "--"
+                ]
+            )
 
-                commit = repository.head_commit
-                if line == 2:
-                    self.key = _(ctx, "commit hash")
-                    self.values = str(commit)[:7]
+            class Item:
+                def __init__(self, repository: Repository, line: int, up_to_date):
+                    if line == 0:
+                        self.name = repository.name
+                    else:
+                        self.name = ""
 
-                if line == 3:
-                    self.key = _(ctx, "commit text")
-                    self.values = commit.summary
+                    if line == 0 or line == 1:
+                        modules: List[str] = []
+                        for module_name in repository.module_names:
+                            full_module_name: str = f"{repository.name}.{module_name}"
+                            if line == 0 and full_module_name in loaded_modules:
+                                modules.append(module_name)
+                            if line == 1 and full_module_name not in loaded_modules:
+                                modules.append(module_name)
 
-        items: List[Item] = []
-        for repository in repositories:
-            for line in range(4):
-                items.append(Item(repository, line))
+                        self.key = (
+                            _(ctx, "loaded modules")
+                            if line == 0
+                            else _(ctx, "unloaded modules")
+                        )
+                        self.values = ", ".join(modules) if modules else "--"
 
-        table: List[str] = utils.text.create_table(
-            items,
-            header={
-                "name": _(ctx, "Repository"),
-                "key": _(ctx, "Key"),
-                "values": _(ctx, "Values"),
-            },
-        )
+                    commit = repository.head_commit
+                    if line == 2:
+                        self.key = _(ctx, "commit hash")
+                        self.values = f"{str(commit)[:7]} "
+                        self.values += (
+                            _(ctx, "(up to date)")
+                            if up_to_date
+                            else f"\u001b[1;31m{_(ctx, '(outdated)')}\u001b[0m"
+                        )
 
-        for page in table:
-            await ctx.send("```" + page + "```")
+                    if line == 3:
+                        self.key = _(ctx, "commit text")
+                        self.values = commit.summary
+
+            items: List[Item] = []
+            loop = self.bot.loop
+            for repository in repositories:
+                status = loop.run_in_executor(
+                    None, repository.git_status, update_remote
+                )
+                ahead, behind = await status
+                up_to_date = ahead == behind == 0
+                for line in range(4):
+                    items.append(Item(repository, line, up_to_date))
+
+            table: List[str] = utils.text.create_table(
+                items,
+                header={
+                    "name": _(ctx, "Repository"),
+                    "key": _(ctx, "Key"),
+                    "values": _(ctx, "Values"),
+                },
+            )
+
+            for page in table:
+                await ctx.send("```" + page + "```")
 
     @commands.max_concurrency(1, per=commands.BucketType.default, wait=False)
     @check.acl2(check.ACLevel.BOT_OWNER)
     @repository_.command(name="install")
-    async def repository_install(self, ctx, url: str, branch: Optional[str] = None):
+    async def repository_install(
+        self, ctx: commands.Context, url: str, branch: Optional[str] = None
+    ):
         """Install module repository."""
         tempdir = tempfile.TemporaryDirectory()
         workdir = Path(tempdir.name) / "strawberry-module"
 
         # download to temporary directory
         async with ctx.typing():
-            stderr: Optional[str] = Repository.git_clone(workdir, url)
+            loop = self.bot.loop
+            clone = loop.run_in_executor(None, Repository.git_clone, workdir, url)
+            stderr: Optional[str] = await clone
         if stderr is not None:
             tempdir.cleanup()
             for output in utils.text.split(stderr):
@@ -202,9 +246,11 @@ class Admin(commands.Cog):
 
         # install requirements
         async with ctx.typing():
-            install: Optional[str] = repository.install_requirements()
-            if install is not None:
-                for output in utils.text.split(install):
+            loop = self.bot.loop
+            res = loop.run_in_executor(None, repository.install_requirements)
+            stderr: Optional[str] = await res
+            if stderr is not None:
+                for output in utils.text.split(stderr):
                     await ctx.send("```" + output + "```")
 
         # check if the repository uses database
@@ -245,14 +291,65 @@ class Admin(commands.Cog):
                 ),
             )
 
+    async def _update_repo(
+        self, ctx: commands.Context, repo: Repository, option: str = None
+    ):
+        """Helper function to update repository.
+
+        :param ctx: Commands context
+        :param repo: Repository to update
+        :param option: Git Pull options  (reset, force or None)
+        """
+        requirements_txt_hash: str = repo.requirements_txt_hash
+        loop = self.bot.loop
+        async with ctx.typing():
+            if option == "reset":
+                pull = loop.run_in_executor(None, repo.git_reset_pull)
+            else:
+                pull = loop.run_in_executor(
+                    None, partial(repo.git_pull, option == "force")
+                )
+            stdout: str = await pull
+        for output in utils.text.split(stdout):
+            await ctx.send("```" + output + "```")
+
+        manager.refresh()
+
+        requirements_txt_updated: bool = False
+        if repo.requirements_txt_hash != requirements_txt_hash:
+            await ctx.send(_(ctx, "File `requirements.txt` changed, running `pip`."))
+            requirements_txt_updated = True
+
+            async with ctx.typing():
+                loop = self.bot.loop
+                res = loop.run_in_executor(None, repo.install_requirements)
+                stderr: Optional[str] = await res
+                if stderr is not None:
+                    for output in utils.text.split(stderr):
+                        await ctx.send("```" + output + "```")
+
+        if output == "Already up to date.":
+            log_message: str = (
+                f"Repository {repo.name} already up to date: "
+                + str(repo.head_commit)[:7]
+            )
+        else:
+            log_message: str = f"Repository {repo.name} updated: " + output[10:25]
+
+        if requirements_txt_updated:
+            log_message += " requirements.txt differed, pip was run."
+        await bot_log.info(ctx.author, ctx.channel, log_message)
+
     @commands.max_concurrency(1, per=commands.BucketType.default, wait=False)
     @check.acl2(check.ACLevel.BOT_OWNER)
     @repository_.command(name="update", aliases=["fetch", "pull"])
-    async def repository_update(self, ctx, name: str, option: Optional[str]):
-        """Update module repository.
+    async def repository_update(
+        self, ctx: commands.Context, name: str, option: Optional[str]
+    ):
+        """Update module repository. It's highly recommended to restart the bot afterwards.
 
         Args:
-            name: Repository name
+            name: Repository name, use `*` for all repositories.
             option: Optional update type (FORCE = force pull, RESET = hard reset)
         """
         if option:
@@ -263,51 +360,27 @@ class Admin(commands.Cog):
                 )
                 return
 
-        repository: Optional[Repository] = manager.get_repository(name)
-        if repository is None:
-            await ctx.reply(_(ctx, "No such repository."))
-            return
+        if name == "*":
+            await ctx.reply(_(ctx, "Updating all repositories."))
+            for repo in manager.repositories:
+                self._update_repo(ctx=ctx, repo=repo, option=option)
 
-        requirements_txt_hash: str = repository.requirements_txt_hash
-
-        async with ctx.typing():
-            if option == "reset":
-                pull: str = repository.git_reset_pull()
-            else:
-                pull: str = repository.git_pull(option == "force")
-        for output in utils.text.split(pull):
-            await ctx.send("```" + output + "```")
-
-        manager.refresh()
-
-        requirements_txt_updated: bool = False
-        if repository.requirements_txt_hash != requirements_txt_hash:
-            await ctx.send(_(ctx, "File `requirements.txt` changed, running `pip`."))
-            requirements_txt_updated = True
-
-            async with ctx.typing():
-                install: str = repository.install_requirements()
-                if install is not None:
-                    for output in utils.text.split(install):
-                        await ctx.send("```" + output + "```")
-
-        if output == "Already up to date.":
-            log_message: str = (
-                f"Repository {name} already up to date: "
-                + str(repository.head_commit)[:7]
-            )
         else:
-            log_message: str = f"Repository {name} updated: " + output[10:25]
-
-        if requirements_txt_updated:
-            log_message += " requirements.txt differed, pip was run."
-
-        await bot_log.info(ctx.author, ctx.channel, log_message)
+            repo: Optional[Repository] = manager.get_repository(name)
+            if repo is None:
+                await ctx.reply(_(ctx, "No such repository."))
+                return
+            await self._update_repo(ctx=ctx, repo=repo, option=option)
 
     @check.acl2(check.ACLevel.BOT_OWNER)
     @repository_.command(name="checkout")
-    async def repository_checkout(self, ctx, name: str, branch: str):
-        """Change current branch of the repository."""
+    async def repository_checkout(self, ctx: commands.Context, name: str, branch: str):
+        """Change current branch of the repository.
+
+        Args:
+            name: Repository name
+            branch: Branch to checkout to
+        """
         repository: Optional[Repository] = manager.get_repository(name)
         if repository is None:
             await ctx.reply(_(ctx, "No such repository."))
@@ -327,9 +400,11 @@ class Admin(commands.Cog):
             await ctx.send(_(ctx, "File `requirements.txt` changed, running `pip`."))
 
             async with ctx.typing():
-                install: str = repository.install_requirements()
-                if install is not None:
-                    for output in utils.text.split(install):
+                loop = self.bot.loop
+                res = loop.run_in_executor(None, repository.install_requirements)
+                stderr: Optional[str] = await res
+                if stderr is not None:
+                    for output in utils.text.split(stderr):
                         await ctx.send("```" + output + "```")
 
         await bot_log.info(
@@ -342,8 +417,12 @@ class Admin(commands.Cog):
     @commands.max_concurrency(1, per=commands.BucketType.default, wait=False)
     @check.acl2(check.ACLevel.BOT_OWNER)
     @repository_.command(name="uninstall")
-    async def repository_uninstall(self, ctx, name: str):
-        """Uninstall module repository."""
+    async def repository_uninstall(self, ctx: commands.Context, name: str):
+        """Uninstall module repository.
+
+        Args:
+            name: Repository name
+        """
         if name == "base":
             await ctx.reply(_(ctx, "This repository is protected."))
             return
@@ -362,10 +441,13 @@ class Admin(commands.Cog):
             )
             return
 
+        loop = self.bot.loop
         if repository_path.is_symlink():
-            repository_path.unlink()
+            action = loop.run_in_executor(None, repository_path.unlink)
         else:
-            shutil.rmtree(repository_path)
+            action = loop.run_in_executor(None, shutil.rmtree, repository_path)
+
+        await action
 
         manager.refresh()
 
@@ -390,7 +472,7 @@ class Admin(commands.Cog):
 
     @check.acl2(check.ACLevel.BOT_OWNER)
     @module_.command(name="load")
-    async def module_load(self, ctx, name: str, sync: bool = False):
+    async def module_load(self, ctx: commands.Context, name: str, sync: bool = False):
         """Load module. Use format <repository>.<module>.
         When sync is True, bot performs Slash commands tree sync."""
         await self.bot.load_extension("modules." + name + ".module")
@@ -402,7 +484,7 @@ class Admin(commands.Cog):
 
     @check.acl2(check.ACLevel.BOT_OWNER)
     @module_.command(name="unload")
-    async def module_unload(self, ctx, name: str, sync: bool = False):
+    async def module_unload(self, ctx: commands.Context, name: str, sync: bool = False):
         """Unload module. Use format <repository>.<module>.
         When sync is True, bot performs Slash commands tree sync."""
         if name in ("base.admin",):
@@ -419,7 +501,7 @@ class Admin(commands.Cog):
 
     @check.acl2(check.ACLevel.BOT_OWNER)
     @module_.command(name="reload")
-    async def module_reload(self, ctx, name: str, sync: bool = False):
+    async def module_reload(self, ctx: commands.Context, name: str, sync: bool = False):
         """Reload bot module. Use format <repository>.<module>.
         When sync is True, bot performs Slash commands tree sync."""
         await self.bot.reload_extension("modules." + name + ".module")
@@ -430,13 +512,13 @@ class Admin(commands.Cog):
 
     @check.acl2(check.ACLevel.BOT_OWNER)
     @commands.group(name="config")
-    async def config_(self, ctx):
+    async def config_(self, ctx: commands.Context):
         """Manage core bot configuration."""
         await utils.discord.send_help(ctx)
 
     @check.acl2(check.ACLevel.BOT_OWNER)
     @config_.command(name="get")
-    async def config_get(self, ctx):
+    async def config_get(self, ctx: commands.Context):
         """Display core bot configuration."""
         embed = utils.discord.create_embed(
             author=ctx.author,
@@ -460,7 +542,7 @@ class Admin(commands.Cog):
     @commands.guild_only()
     @check.acl2(check.ACLevel.BOT_OWNER)
     @config_.command(name="set")
-    async def config_set(self, ctx, key: str, value: str):
+    async def config_set(self, ctx: commands.Context, key: str, value: str):
         """Alter core bot configuration."""
         keys = ("prefix", "language", "status")
         if key not in keys:
@@ -503,13 +585,13 @@ class Admin(commands.Cog):
     @commands.guild_only()
     @check.acl2(check.ACLevel.BOT_OWNER)
     @commands.group(name="strawberry")
-    async def strawberry_(self, ctx):
+    async def strawberry_(self, ctx: commands.Context):
         """Manage bot instance."""
         await utils.discord.send_help(ctx)
 
     @check.acl2(check.ACLevel.BOT_OWNER)
     @strawberry_.command(name="sync")
-    async def strawberry_sync(self, ctx):
+    async def strawberry_sync(self, ctx: commands.Context):
         """Sync slash commands to current guild."""
         async with ctx.typing():
             # sync global commands
@@ -538,13 +620,15 @@ class Admin(commands.Cog):
     @commands.guild_only()
     @check.acl2(check.ACLevel.SUBMOD)
     @commands.group(name="spamchannel")
-    async def spamchannel_(self, ctx):
+    async def spamchannel_(self, ctx: commands.Context):
         """Manage bot spam channels."""
         await utils.discord.send_help(ctx)
 
     @check.acl2(check.ACLevel.MOD)
     @spamchannel_.command(name="add")
-    async def spamchannel_add(self, ctx, channel: discord.TextChannel):
+    async def spamchannel_add(
+        self, ctx: commands.Context, channel: discord.TextChannel
+    ):
         """Set channel as bot spam channel."""
         spam_channel = SpamChannel.get(ctx.guild.id, channel.id)
         if spam_channel:
@@ -571,7 +655,7 @@ class Admin(commands.Cog):
 
     @check.acl2(check.ACLevel.SUBMOD)
     @spamchannel_.command(name="list")
-    async def spamchannel_list(self, ctx):
+    async def spamchannel_list(self, ctx: commands.Context):
         """List bot spam channels on this server."""
         spam_channels = SpamChannel.get_all(ctx.guild.id)
         if not spam_channels:
@@ -600,7 +684,9 @@ class Admin(commands.Cog):
 
     @check.acl2(check.ACLevel.MOD)
     @spamchannel_.command(name="remove", aliases=["rem"])
-    async def spamchannel_remove(self, ctx, channel: discord.TextChannel):
+    async def spamchannel_remove(
+        self, ctx: commands.Context, channel: discord.TextChannel
+    ):
         """Unset channel as spam channel."""
         if SpamChannel.remove(ctx.guild.id, channel.id):
             message = _(ctx, "Spam channel {channel} removed.")
@@ -615,7 +701,9 @@ class Admin(commands.Cog):
 
     @check.acl2(check.ACLevel.MOD)
     @spamchannel_.command(name="primary")
-    async def spamchannel_primary(self, ctx, channel: discord.TextChannel):
+    async def spamchannel_primary(
+        self, ctx: commands.Context, channel: discord.TextChannel
+    ):
         """Set channel as primary bot channel.
 
         When this is set, it will be used to direct users to it in an error

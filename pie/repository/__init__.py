@@ -9,6 +9,8 @@ from pathlib import Path
 from typing import List, Optional, Tuple
 
 import git
+from git.objects.commit import Commit
+from git.repo.base import Repo
 
 from pie.exceptions import RepositoryMetadataError
 
@@ -101,10 +103,10 @@ class Repository:
         )
 
     @property
-    def head_commit(self) -> git.objects.commit.Commit:
+    def head_commit(self) -> Commit:
         """Get the last commit."""
         is_base: bool = self.name == "base"
-        repo = git.repo.base.Repo(str(self.path), search_parent_directories=is_base)
+        repo = Repo(str(self.path), search_parent_directories=is_base)
         return repo.head.commit
 
     def change_branch(self, branch: str) -> None:
@@ -113,7 +115,7 @@ class Repository:
         :raises ValueError: Output of git if an error occurs.
         """
         is_base: bool = getattr(self, "name", "") == "base"
-        repo = git.repo.base.Repo(str(self.path), search_parent_directories=is_base)
+        repo = Repo(str(self.path), search_parent_directories=is_base)
         repo.remotes.origin.fetch()
         try:
             repo.git.checkout(branch)
@@ -234,7 +236,7 @@ class Repository:
         :return: stderr output on error, otherwise `None`.
         """
         try:
-            git.repo.base.Repo.clone_from(url, str(path.resolve()))
+            Repo.clone_from(url, str(path.resolve()))
         except git.exc.GitError as exc:
             stderr: str = str(exc)[str(exc).find("stderr: ") + 8 :]
             return stderr
@@ -246,7 +248,7 @@ class Repository:
         :return: Git output
         """
         is_base: bool = self.name == "base"
-        repo = git.repo.base.Repo(str(self.path), search_parent_directories=is_base)
+        repo = Repo(str(self.path), search_parent_directories=is_base)
         result: str = repo.git.pull(force=force)
         return result
 
@@ -257,12 +259,30 @@ class Repository:
         """
         is_base: bool = self.name == "base"
 
-        repo = git.repo.base.Repo(str(self.path), search_parent_directories=is_base)
+        repo = Repo(str(self.path), search_parent_directories=is_base)
 
         repo.remotes.origin.fetch()
         result = str(repo.git.reset("--hard", f"origin/{repo.active_branch.name}"))
         result += "\n" + str(repo.git.pull(force=True))
         return result
+
+    def git_status(self, update_remote: bool = True) -> tuple[int, int]:
+        """Get's the number of commits ahead / behind head.
+
+        :returns: Tuple in form of (ahead, behind)"""
+        is_base: bool = self.name == "base"
+        repo = Repo(str(self.path), search_parent_directories=is_base)
+        if update_remote:
+            repo.remotes.origin.fetch()
+        try:
+            rev_list: str = repo.git.rev_list(
+                "--left-right",
+                "--count",
+                f"{repo.active_branch.name}...{repo.active_branch.name}@{{u}}",
+            )
+        except git.exc.GitCommandError:
+            return (-1, -1)
+        return tuple([int(x) for x in rev_list.split("\t")])
 
     @property
     def requirements_txt_hash(self) -> Optional[str]:
