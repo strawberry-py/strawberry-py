@@ -41,14 +41,17 @@ class Admin(commands.Cog):
     def cog_unload(self):
         """Cancel status loop on unload."""
         self.status_loop.cancel()
+        self.check_updates.cancel()
 
     # Loops
 
     @tasks.loop(hours=24)
     async def check_updates(self):
         outdated: list[str] = []
+        loop = self.bot.loop
         for repo in manager.repositories:
-            ahead, behind = repo.git_status()
+            status = loop.run_in_executor(None, repo.git_status)
+            ahead, behind = await status
             if not (ahead == behind == 0):
                 outdated.append(repo.name)
 
@@ -120,73 +123,80 @@ class Admin(commands.Cog):
 
     @check.acl2(check.ACLevel.BOT_OWNER)
     @repository_.command(name="list")
-    async def repository_list(self, ctx):
+    async def repository_list(self, ctx: commands.Context):
         """List module repositories."""
-        repositories: List[Repository] = manager.repositories
+        async with ctx.typing():
+            repositories: List[Repository] = manager.repositories
 
-        # This allows us to print non-loaded modules in *italics* and loaded
-        # (and thus available) in regular font.
-        loaded_modules: Set[str] = set(
-            [
-                cog.__module__[8:-7]  # strip 'modules.' & '.module' from the name
-                for cog in sorted(self.bot.cogs.values(), key=lambda m: m.__module__)
-            ]
-        )
-
-        class Item:
-            def __init__(self, repository: Repository, line: int):
-                if line == 0:
-                    self.name = repository.name
-                else:
-                    self.name = ""
-
-                if line == 0 or line == 1:
-                    modules: List[str] = []
-                    for module_name in repository.module_names:
-                        full_module_name: str = f"{repository.name}.{module_name}"
-                        if line == 0 and full_module_name in loaded_modules:
-                            modules.append(module_name)
-                        if line == 1 and full_module_name not in loaded_modules:
-                            modules.append(module_name)
-
-                    self.key = (
-                        _(ctx, "loaded modules")
-                        if line == 0
-                        else _(ctx, "unloaded modules")
+            # This allows us to print non-loaded modules in *italics* and loaded
+            # (and thus available) in regular font.
+            loaded_modules: Set[str] = set(
+                [
+                    cog.__module__[8:-7]  # strip 'modules.' & '.module' from the name
+                    for cog in sorted(
+                        self.bot.cogs.values(), key=lambda m: m.__module__
                     )
-                    self.values = ", ".join(modules) if modules else "--"
+                ]
+            )
 
-                commit = repository.head_commit
-                ahead, behind = repository.git_status()
-                if line == 2:
-                    self.key = _(ctx, "commit hash")
-                    self.values = f"{str(commit)[:7]} "
-                    self.values += (
-                        _(ctx, "(up to date)")
-                        if ahead == behind == 0
-                        else _(ctx, "(outdated)")
-                    )
+            class Item:
+                def __init__(self, repository: Repository, line: int, up_to_date):
+                    if line == 0:
+                        self.name = repository.name
+                    else:
+                        self.name = ""
 
-                if line == 3:
-                    self.key = _(ctx, "commit text")
-                    self.values = commit.summary
+                    if line == 0 or line == 1:
+                        modules: List[str] = []
+                        for module_name in repository.module_names:
+                            full_module_name: str = f"{repository.name}.{module_name}"
+                            if line == 0 and full_module_name in loaded_modules:
+                                modules.append(module_name)
+                            if line == 1 and full_module_name not in loaded_modules:
+                                modules.append(module_name)
 
-        items: List[Item] = []
-        for repository in repositories:
-            for line in range(4):
-                items.append(Item(repository, line))
+                        self.key = (
+                            _(ctx, "loaded modules")
+                            if line == 0
+                            else _(ctx, "unloaded modules")
+                        )
+                        self.values = ", ".join(modules) if modules else "--"
 
-        table: List[str] = utils.text.create_table(
-            items,
-            header={
-                "name": _(ctx, "Repository"),
-                "key": _(ctx, "Key"),
-                "values": _(ctx, "Values"),
-            },
-        )
+                    commit = repository.head_commit
+                    if line == 2:
+                        self.key = _(ctx, "commit hash")
+                        self.values = f"{str(commit)[:7]} "
+                        self.values += (
+                            _(ctx, "(up to date)")
+                            if up_to_date
+                            else _(ctx, "(outdated)")
+                        )
 
-        for page in table:
-            await ctx.send("```" + page + "```")
+                    if line == 3:
+                        self.key = _(ctx, "commit text")
+                        self.values = commit.summary
+
+            items: List[Item] = []
+            loop = self.bot.loop
+            for repository in repositories:
+                status = loop.run_in_executor(None, repository.git_status)
+                ahead, behind = await status
+                # ahead, behind = await repository.git_status(update_remote=False)
+                up_to_date = ahead == behind == 0
+                for line in range(4):
+                    items.append(Item(repository, line, up_to_date))
+
+            table: List[str] = utils.text.create_table(
+                items,
+                header={
+                    "name": _(ctx, "Repository"),
+                    "key": _(ctx, "Key"),
+                    "values": _(ctx, "Values"),
+                },
+            )
+
+            for page in table:
+                await ctx.send("```" + page + "```")
 
     @commands.max_concurrency(1, per=commands.BucketType.default, wait=False)
     @check.acl2(check.ACLevel.BOT_OWNER)

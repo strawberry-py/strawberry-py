@@ -266,18 +266,22 @@ class Repository:
         result += "\n" + str(repo.git.pull(force=True))
         return result
 
-    def git_status(self) -> tuple[int, int]:
+    def git_status(self, update_remote: bool = True) -> tuple[int, int]:
         """Get's the number of commits ahead / behind head.
 
         :returns: Tuple in form of (ahead, behind)"""
         is_base: bool = self.name == "base"
         repo = Repo(str(self.path), search_parent_directories=is_base)
-        repo.remote().update()
-        rev_list: str = repo.git.rev_list(
-            "--left-right",
-            "--count",
-            f"{repo.active_branch.name}...{repo.active_branch.name}@{{u}}",
-        )
+        if update_remote:
+            repo.remotes.origin.fetch()
+        try:
+            rev_list: str = repo.git.rev_list(
+                "--left-right",
+                "--count",
+                f"{repo.active_branch.name}...{repo.active_branch.name}@{{u}}",
+            )
+        except git.exc.GitCommandError:
+            return (-1, -1)
         return tuple([int(x) for x in rev_list.split("\t")])
 
     @property
