@@ -61,7 +61,7 @@ class Strawberry(commands.Bot):
         self.loop.add_signal_handler(
             signal.SIGTERM, partial(self.handle_signal, "received SIGTERM")
         )
-        super().setup_hook()
+        await super().setup_hook()
 
     def handle_signal(self, signal):
         """Helper function that creates task to close the bot
