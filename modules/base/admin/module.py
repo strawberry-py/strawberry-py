@@ -304,7 +304,7 @@ class Admin(commands.Cog):
         loop = self.bot.loop
         async with ctx.typing():
             await ctx.reply(
-                _(ctx, "Updating repository: *{repo}*.").format(repo=repo.name)
+                _(ctx, "Updating repository: **{repo}**.").format(repo=repo.name)
             )
             if option == "reset":
                 pull = loop.run_in_executor(None, repo.git_reset_pull)

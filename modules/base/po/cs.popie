@@ -184,8 +184,8 @@ msgstr Repozitář byl nainstalován do `{path}`. Obsahuje následující moduly
 msgid Repository contains at least one database file. Make sure you restart the bot before you load the modules to ensure database tables were created.
 msgstr Repozitář obsahuje alespoň jeden soubor databáze. Před načtením modulů proveďte restart bota, aby byly všechny tabulky databáze aktualizovány.
 
-msgid Updating repository: *{repo}*.
-msgstr Aktualizuji repozitář: *{repo}*.
+msgid Updating repository: **{repo}**.
+msgstr Aktualizuji repozitář: **{repo}**.
 
 msgid File `requirements.txt` changed, running `pip`.
 msgstr Soubor `requirements.txt` byl změněn, spouštím `pip`.
