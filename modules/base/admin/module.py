@@ -56,9 +56,12 @@ class Admin(commands.Cog):
             if not (ahead == behind == 0):
                 outdated.append(repo.name)
 
-        await bot_log.warning(
-            None, None, "Found outdated repositories: " + ", ".join(outdated)
-        )
+        if outdated:
+            await bot_log.warning(
+                None, None, "Found outdated repositories: " + ", ".join(outdated)
+            )
+        else:
+            await bot_log.info(None, None, "No repository updates found.")
 
     @check_updates.before_loop
     async def before_check_updates(self):
