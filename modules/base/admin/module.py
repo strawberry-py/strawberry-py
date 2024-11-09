@@ -363,7 +363,7 @@ class Admin(commands.Cog):
         if name == "*":
             await ctx.reply(_(ctx, "Updating all repositories."))
             for repo in manager.repositories:
-                self._update_repo(ctx=ctx, repo=repo, option=option)
+                await self._update_repo(ctx=ctx, repo=repo, option=option)
 
         else:
             repo: Optional[Repository] = manager.get_repository(name)
