@@ -36,12 +36,30 @@ class Admin(commands.Cog):
         if config.status == "auto":
             self.status_loop.start()
         self.send_manager_log.start()
+        self.check_updates.start()
 
     def cog_unload(self):
         """Cancel status loop on unload."""
         self.status_loop.cancel()
 
     # Loops
+
+    @tasks.loop(hours=24)
+    async def check_updates(self):
+        outdated: list[str] = []
+        for repo in manager.repositories:
+            ahead, behind = repo.git_status()
+            if not (ahead == behind == 0):
+                outdated.append(repo.name)
+
+        await bot_log.warning(
+            None, None, "Found outdated repositories: " + ", ".join(outdated)
+        )
+
+    @check_updates.before_loop
+    async def before_check_updates(self):
+        if not self.bot.is_ready():
+            await self.bot.wait_until_ready()
 
     @tasks.loop(minutes=1)
     async def send_manager_log(self):
@@ -139,9 +157,15 @@ class Admin(commands.Cog):
                     self.values = ", ".join(modules) if modules else "--"
 
                 commit = repository.head_commit
+                ahead, behind = repository.git_status()
                 if line == 2:
                     self.key = _(ctx, "commit hash")
-                    self.values = str(commit)[:7]
+                    self.values = f"{str(commit)[:7]} "
+                    self.values += (
+                        _(ctx, "(up to date)")
+                        if ahead == behind == 0
+                        else _(ctx, "(outdated)")
+                    )
 
                 if line == 3:
                     self.key = _(ctx, "commit text")
