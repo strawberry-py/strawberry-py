@@ -4,6 +4,7 @@ import asyncio
 import os
 import platform
 import sys
+import traceback
 from pathlib import Path
 from typing import Dict
 
@@ -111,7 +112,8 @@ try:
     result = asyncio.run(main())
 except asyncio.exceptions.CancelledError:
     print("Strawberry-py process was interrupted.")
-except Exception:
+except Exception as e:
+    print(traceback.format_exc(e))
     result = 2
 
 print(f"Exit code: {result}")
