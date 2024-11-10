@@ -170,10 +170,11 @@ class Admin(commands.Cog):
                         )
                         self.values = ", ".join(modules) if modules else "--"
 
+                    branch = repository.branch
                     commit = repository.head_commit
                     if line == 2:
                         self.key = _(ctx, "commit hash")
-                        self.values = f"{str(commit)[:7]} "
+                        self.values = f"{branch} - {str(commit)[:7]} "
                         self.values += (
                             _(ctx, "(up to date)")
                             if up_to_date

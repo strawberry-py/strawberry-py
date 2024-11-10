@@ -83,10 +83,9 @@ class RepositoryManager:
 class Repository:
     """Module repository."""
 
-    __slots__ = ("path", "branch", "name", "module_names")
+    __slots__ = ("path", "name", "module_names")
 
     path: Path
-    branch: str
     name: str
     module_names: List[str]
 
@@ -105,17 +104,14 @@ class Repository:
     @property
     def head_commit(self) -> Commit:
         """Get the last commit."""
-        is_base: bool = self.name == "base"
-        repo = Repo(str(self.path), search_parent_directories=is_base)
-        return repo.head.commit
+        return self._repo.head.commit
 
     def change_branch(self, branch: str) -> None:
         """Change the git branch of the repository.
 
         :raises ValueError: Output of git if an error occurs.
         """
-        is_base: bool = getattr(self, "name", "") == "base"
-        repo = Repo(str(self.path), search_parent_directories=is_base)
+        repo = self._repo
         repo.remotes.origin.fetch()
         try:
             repo.git.checkout(branch)
@@ -123,6 +119,7 @@ class Repository:
             raise ValueError(
                 f"Could not checkout branch '{branch}': {exc.stderr.strip()}"
             )
+        branch = repo.active_branch.name
 
     def set_facts(self) -> None:
         """Check the repo.conf and get the repository information."""
@@ -247,8 +244,7 @@ class Repository:
 
         :return: Git output
         """
-        is_base: bool = self.name == "base"
-        repo = Repo(str(self.path), search_parent_directories=is_base)
+        repo = self._repo
         result: str = repo.git.pull(force=force)
         return result
 
@@ -257,9 +253,7 @@ class Repository:
 
         :return: Git output
         """
-        is_base: bool = self.name == "base"
-
-        repo = Repo(str(self.path), search_parent_directories=is_base)
+        repo = self._repo
 
         repo.remotes.origin.fetch()
         result = str(repo.git.reset("--hard", f"origin/{repo.active_branch.name}"))
@@ -270,8 +264,7 @@ class Repository:
         """Get's the number of commits ahead / behind head.
 
         :returns: Tuple in form of (ahead, behind)"""
-        is_base: bool = self.name == "base"
-        repo = Repo(str(self.path), search_parent_directories=is_base)
+        repo = self._repo
         if update_remote:
             repo.remotes.origin.fetch()
         try:
@@ -283,6 +276,27 @@ class Repository:
         except git.exc.GitCommandError:
             return (-1, -1)
         return tuple([int(x) for x in rev_list.split("\t")])
+
+    @property
+    def branch(self) -> Optional[str]:
+        """Get current branch name.
+
+        :return: Name of the current branch"""
+        return self._repo.active_branch.name
+
+    @property
+    def is_base(self) -> bool:
+        """Check if repo is base.
+
+        :return: True if base repo, False otherwise"""
+        return getattr(self, "name", "") == "base"
+
+    @property
+    def _repo(self) -> Repo:
+        """Get GIT repository. Internal use only.
+
+        :return: GIT repository"""
+        return Repo(str(self.path), search_parent_directories=self.is_base)
 
     @property
     def requirements_txt_hash(self) -> Optional[str]:
