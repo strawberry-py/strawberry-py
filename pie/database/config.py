@@ -6,7 +6,7 @@ from sqlalchemy import Column, Integer, String
 
 from pie.database import database, session
 
-VERSION = 1
+VERSION = 2
 
 
 class Config(database.base):
@@ -18,6 +18,7 @@ class Config(database.base):
     prefix = Column(String, default="!")
     language = Column(String, default="en")
     status = Column(String, default="online")
+    cache_max_messages = Column(Integer, default=1000)
 
     @staticmethod
     def get() -> Config:
