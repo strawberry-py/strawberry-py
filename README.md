@@ -12,7 +12,7 @@
 
 ## About
 
-strawberry.py is fork of pumpkin-py - a Discord bot framework written in Discord.py.
+strawberry.py is fork of [pumpkin-py](https://github.com/pumpkin-py/pumpkin-py) - a Discord bot framework written in Discord.py.
 
 This code is just the core -- see other [repositories](https://github.com/orgs/strawberry-py/repositories) to add more functions to your bot!
 
@@ -31,6 +31,8 @@ To see how you can manage the running instance, see our [GitHub.io](https://stra
 ## Authors
 
 strawberry.py is mantained by [Fialin](https://github.com/j-fiala) and [ArcasCZ](https://github.com/ArcasCZ).
+
+pumpkin.py was created mostly by [sinus-x](https://github.com/sinus-x) and [Czechbol](https://github.com/Czechbol).
 
 We also have several amazing contributors -- see them at the **Contributors** section on the right panel!
 
