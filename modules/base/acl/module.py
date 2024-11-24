@@ -1,5 +1,4 @@
 from operator import attrgetter
-from typing import List
 
 import discord
 from discord.ext import commands
@@ -14,6 +13,7 @@ from pie.acl.database import (
     RoleOverwrite,
     UserOverwrite,
 )
+from pie.bot import Strawberry
 
 _ = i18n.Translator("modules/base").translate
 bot_log = logger.Bot.logger()
@@ -23,7 +23,7 @@ guild_log = logger.Guild.logger()
 class ACL(commands.Cog):
     """Access control module."""
 
-    def __init__(self, bot):
+    def __init__(self, bot: Strawberry):
         self.bot = bot
 
     #
@@ -31,19 +31,19 @@ class ACL(commands.Cog):
     @commands.guild_only()
     @check.acl2(check.ACLevel.SUBMOD)
     @commands.group(name="acl")
-    async def acl_(self, ctx):
+    async def acl_(self, ctx: commands.Context):
         """Permission control."""
         await utils.discord.send_help(ctx)
 
     @check.acl2(check.ACLevel.SUBMOD)
     @acl_.group(name="mapping")
-    async def acl_mapping_(self, ctx):
+    async def acl_mapping_(self, ctx: commands.Context):
         """Manage mapping of ACL levels to roles."""
         await utils.discord.send_help(ctx)
 
     @check.acl2(check.ACLevel.SUBMOD)
     @acl_mapping_.command(name="list")
-    async def acl_mapping_list(self, ctx):
+    async def acl_mapping_list(self, ctx: commands.Context):
         """Display ACL level to role mappings."""
 
         class Item:
@@ -52,7 +52,7 @@ class ACL(commands.Cog):
                 role = ctx.guild.get_role(mapping.role_id)
                 self.role = getattr(role, "name", str(mapping.role_id))
 
-        mappings = ACLevelMappping.get_all(ctx.guild.id)
+        mappings: list[ACLevelMappping] = ACLevelMappping.get_all(ctx.guild.id)
 
         if not mappings:
             await ctx.reply(_(ctx, "No mappings have been set."))
@@ -61,7 +61,7 @@ class ACL(commands.Cog):
         mappings = sorted(mappings, key=lambda m: m.level.name)[::-1]
         items = [Item(mapping) for mapping in mappings]
 
-        table: List[str] = utils.text.create_table(
+        table: list[str] = utils.text.create_table(
             items,
             header={
                 "role": _(ctx, "Role"),
@@ -74,7 +74,9 @@ class ACL(commands.Cog):
 
     @check.acl2(check.ACLevel.GUILD_OWNER)
     @acl_mapping_.command(name="add")
-    async def acl_mapping_add(self, ctx, role: discord.Role, level: str):
+    async def acl_mapping_add(
+        self, ctx: commands.Context, role: discord.Role, level: str
+    ):
         """Add ACL level to role mappings."""
         try:
             level: ACLevel = ACLevel[level]
@@ -96,8 +98,8 @@ class ACL(commands.Cog):
             )
             return
 
-        m = ACLevelMappping.add(ctx.guild.id, role.id, level)
-        if m is None:
+        mapping = ACLevelMappping.add(ctx.guild.id, role.id, level)
+        if mapping is None:
             await ctx.reply(_(ctx, "That role is already mapped to some level."))
             return
 
@@ -114,19 +116,19 @@ class ACL(commands.Cog):
 
     @check.acl2(check.ACLevel.GUILD_OWNER)
     @acl_mapping_.command(name="remove")
-    async def acl_mapping_remove(self, ctx, role: discord.Role):
+    async def acl_mapping_remove(self, ctx: commands.Context, role: discord.Role):
         """Remove ACL level to role mapping."""
-        mapped = ACLevelMappping.get(ctx.guild.id, role.id)
-        if not mapped:
+        mapping = ACLevelMappping.get(ctx.guild.id, role.id)
+        if not mapping:
             await ctx.reply(_(ctx, "That role is not mapped to any level."))
             return
 
-        if mapped.level >= pie.acl.map_member_to_ACLevel(
+        if mapping.level >= pie.acl.map_member_to_ACLevel(
             bot=self.bot, member=ctx.author
         ):
             await ctx.reply(
                 _(ctx, "Your ACLevel has to be higher than **{level}**.").format(
-                    level=mapped.level.name
+                    level=mapping.level.name
                 )
             )
             return
@@ -142,17 +144,17 @@ class ACL(commands.Cog):
 
     @check.acl2(check.ACLevel.SUBMOD)
     @acl_.group(name="default")
-    async def acl_default_(self, ctx):
+    async def acl_default_(self, ctx: commands.Context):
         """Manage default (hardcoded) command ACLevels."""
         await utils.discord.send_help(ctx)
 
     @check.acl2(check.ACLevel.SUBMOD)
     @acl_default_.command("list")
-    async def acl_default_list(self, ctx):
+    async def acl_default_list(self, ctx: commands.Context):
         """List currently applied default overwrites."""
 
         class Item:
-            def __init__(self, bot: commands.Bot, default: ACDefault):
+            def __init__(self, bot: Strawberry, default: ACDefault):
                 self.command = default.command
                 self.level = default.level.name
                 command_fn = bot.get_command(self.command).callback
@@ -168,7 +170,7 @@ class ACL(commands.Cog):
         defaults = sorted(defaults, key=lambda d: d.command)[::-1]
         items = [Item(self.bot, default) for default in defaults]
 
-        table: List[str] = utils.text.create_table(
+        table: list[str] = utils.text.create_table(
             items,
             header={
                 "command": _(ctx, "Command"),
@@ -182,7 +184,7 @@ class ACL(commands.Cog):
 
     @check.acl2(check.ACLevel.GUILD_OWNER)
     @acl_default_.command("add")
-    async def acl_default_add(self, ctx, command: str, level: str):
+    async def acl_default_add(self, ctx: commands.Context, command: str, level: str):
         """Add custom ACLevel for a command.
 
         You can only constraint commands that you are currently able to invoke.
@@ -245,7 +247,7 @@ class ACL(commands.Cog):
 
     @check.acl2(check.ACLevel.GUILD_OWNER)
     @acl_default_.command("remove")
-    async def acl_default_remove(self, ctx, command: str):
+    async def acl_default_remove(self, ctx: commands.Context, command: str):
         """Remove custom ACLevel for a command."""
         if command not in self._all_bot_commands:
             await ctx.reply(_(ctx, "I don't know this command."))
@@ -279,7 +281,7 @@ class ACL(commands.Cog):
 
     @check.acl2(check.ACLevel.GUILD_OWNER)
     @acl_default_.command("audit")
-    async def acl_default_audit(self, ctx, *, query: str = ""):
+    async def acl_default_audit(self, ctx: commands.Context, *, query: str = ""):
         """Display all bot commands and their defaults."""
         bot_commands = [c for c in self.bot.walk_commands()]
         if len(query):
@@ -291,7 +293,7 @@ class ACL(commands.Cog):
             default_overwrites[default_overwrite.command] = default_overwrite.level
 
         class Item:
-            def __init__(self, bot: commands.Bot, command: commands.Command):
+            def __init__(self, bot: Strawberry, command: commands.Command):
                 self.command = command.qualified_name
                 command_fn = bot.get_command(self.command).callback
                 level = pie.acl.get_hardcoded_ACLevel(command_fn)
@@ -305,7 +307,7 @@ class ACL(commands.Cog):
         # put commands with overwrites first
         items = sorted(items, key=lambda item: item.db_level, reverse=True)
 
-        table: List[str] = utils.text.create_table(
+        table: list[str] = utils.text.create_table(
             items,
             header={
                 "command": _(ctx, "Command"),
@@ -319,13 +321,13 @@ class ACL(commands.Cog):
 
     @check.acl2(check.ACLevel.SUBMOD)
     @acl_.group(name="overwrite")
-    async def acl_overwrite_(self, ctx):
+    async def acl_overwrite_(self, ctx: commands.Context):
         """Manage role, channel and user overwrites."""
         await utils.discord.send_help(ctx)
 
     @check.acl2(check.ACLevel.SUBMOD)
     @acl_overwrite_.command(name="list")
-    async def acl_overwrite_list(self, ctx):
+    async def acl_overwrite_list(self, ctx: commands.Context):
         """Display all active overwrites."""
         ros = RoleOverwrite.get_all(ctx.guild.id)
         cos = ChannelOverwrite.get_all(ctx.guild.id)
@@ -371,7 +373,7 @@ class ACL(commands.Cog):
         # sorting priority: type, command, value
         items = sorted(items, key=attrgetter("value", "command", "overwrite"))
 
-        table: List[str] = utils.text.create_table(
+        table: list[str] = utils.text.create_table(
             items,
             header={
                 "overwrite": _(ctx, "Overwrite type"),
@@ -386,14 +388,14 @@ class ACL(commands.Cog):
 
     @check.acl2(check.ACLevel.SUBMOD)
     @acl_overwrite_.group(name="role")
-    async def acl_overwrite_role_(self, ctx):
+    async def acl_overwrite_role_(self, ctx: commands.Context):
         """Manage role ACL overwrites."""
         await utils.discord.send_help(ctx)
 
     @check.acl2(check.ACLevel.GUILD_OWNER)
     @acl_overwrite_role_.command(name="add")
     async def acl_overwrite_role_add(
-        self, ctx, command: str, role: discord.Role, allow: bool
+        self, ctx: commands.Context, command: str, role: discord.Role, allow: bool
     ):
         """Add ACL role overwrite."""
         if command not in self._all_bot_commands:
@@ -437,7 +439,9 @@ class ACL(commands.Cog):
 
     @check.acl2(check.ACLevel.GUILD_OWNER)
     @acl_overwrite_role_.command(name="remove")
-    async def acl_overwrite_role_remove(self, ctx, command: str, role: discord.Role):
+    async def acl_overwrite_role_remove(
+        self, ctx: commands.Context, command: str, role: discord.Role
+    ):
         """Remove ACL role overwrite."""
         removed = RoleOverwrite.remove(ctx.guild.id, role.id, command)
         if not removed:
@@ -471,16 +475,16 @@ class ACL(commands.Cog):
 
     @check.acl2(check.ACLevel.SUBMOD)
     @acl_overwrite_role_.command(name="list")
-    async def acl_overwrite_role_list(self, ctx):
+    async def acl_overwrite_role_list(self, ctx: commands.Context):
         """List ACL role overwrites."""
         ros = RoleOverwrite.get_all(ctx.guild.id)
 
         class Item:
-            def __init__(self, obj):
-                role = ctx.guild.get_role(obj.role_id)
-                self.role = getattr(role, "name", str(obj.role_id))
-                self.command = obj.command
-                self.allow = _(ctx, "yes") if obj.allow else _(ctx, "no")
+            def __init__(self, ro: RoleOverwrite):
+                role = ctx.guild.get_role(ro.role_id)
+                self.role = getattr(role, "name", str(ro.role_id))
+                self.command = ro.command
+                self.allow = _(ctx, "yes") if ro.allow else _(ctx, "no")
 
         items = [Item(ro) for ro in ros]
 
@@ -491,7 +495,7 @@ class ACL(commands.Cog):
         # sorting priority: command, role
         items = sorted(items, key=attrgetter("role", "command"))
 
-        table: List[str] = utils.text.create_table(
+        table: list[str] = utils.text.create_table(
             items,
             header={
                 "command": _(ctx, "Command"),
@@ -505,14 +509,14 @@ class ACL(commands.Cog):
 
     @check.acl2(check.ACLevel.SUBMOD)
     @acl_overwrite_.group(name="user")
-    async def acl_overwrite_user_(self, ctx):
+    async def acl_overwrite_user_(self, ctx: commands.Context):
         """Manage user ACL overwrites."""
         await utils.discord.send_help(ctx)
 
     @check.acl2(check.ACLevel.GUILD_OWNER)
     @acl_overwrite_user_.command(name="add")
     async def acl_overwrite_user_add(
-        self, ctx, command: str, user: discord.Member, allow: bool
+        self, ctx: commands.Context, command: str, user: discord.Member, allow: bool
     ):
         """Add ACL user overwrite."""
         if command not in self._all_bot_commands:
@@ -556,7 +560,9 @@ class ACL(commands.Cog):
 
     @check.acl2(check.ACLevel.GUILD_OWNER)
     @acl_overwrite_user_.command(name="remove")
-    async def acl_overwrite_user_remove(self, ctx, command: str, user: discord.Member):
+    async def acl_overwrite_user_remove(
+        self, ctx: commands.Context, command: str, user: discord.Member
+    ):
         """Remove ACL user overwrite."""
         removed = UserOverwrite.remove(ctx.guild.id, user.id, command)
         if not removed:
@@ -590,21 +596,21 @@ class ACL(commands.Cog):
 
     @check.acl2(check.ACLevel.SUBMOD)
     @acl_overwrite_user_.command(name="list")
-    async def acl_overwrite_user_list(self, ctx):
+    async def acl_overwrite_user_list(self, ctx: commands.Context):
         """List ACL role overwrites."""
         uos = UserOverwrite.get_all(ctx.guild.id)
 
         class Item:
-            def __init__(self, obj):
+            def __init__(self, uo: UserOverwrite):
                 self.user: str
-                member = ctx.guild.get_member(obj.user_id)
+                member = ctx.guild.get_member(uo.user_id)
                 if member:
                     self.user = member.display_name.replace("`", "'")
                 else:
-                    self.user = str(obj.user_id)
+                    self.user = str(uo.user_id)
 
-                self.command = obj.command
-                self.allow = _(ctx, "yes") if obj.allow else _(ctx, "no")
+                self.command = uo.command
+                self.allow = _(ctx, "yes") if uo.allow else _(ctx, "no")
 
         items = [Item(uo) for uo in uos]
 
@@ -615,7 +621,7 @@ class ACL(commands.Cog):
         # sorting priority: command, user
         items = sorted(items, key=attrgetter("user", "command"))
 
-        table: List[str] = utils.text.create_table(
+        table: list[str] = utils.text.create_table(
             items,
             header={
                 "command": _(ctx, "Command"),
@@ -629,14 +635,18 @@ class ACL(commands.Cog):
 
     @check.acl2(check.ACLevel.SUBMOD)
     @acl_overwrite_.group(name="channel")
-    async def acl_overwrite_channel_(self, ctx):
+    async def acl_overwrite_channel_(self, ctx: commands.Context):
         """Manage channel ACL overwrites."""
         await utils.discord.send_help(ctx)
 
     @check.acl2(check.ACLevel.GUILD_OWNER)
     @acl_overwrite_channel_.command(name="add")
     async def acl_overwrite_channel_add(
-        self, ctx, command: str, channel: discord.TextChannel, allow: bool
+        self,
+        ctx: commands.Context,
+        command: str,
+        channel: discord.TextChannel,
+        allow: bool,
     ):
         """Add ACL channel overwrite."""
         if command not in self._all_bot_commands:
@@ -681,7 +691,7 @@ class ACL(commands.Cog):
     @check.acl2(check.ACLevel.GUILD_OWNER)
     @acl_overwrite_channel_.command(name="remove")
     async def acl_overwrite_channel_remove(
-        self, ctx, command: str, channel: discord.TextChannel
+        self, ctx: commands.Context, command: str, channel: discord.TextChannel
     ):
         """Remove ACL channel overwrite."""
         removed = ChannelOverwrite.remove(ctx.guild.id, channel.id, command)
@@ -716,16 +726,16 @@ class ACL(commands.Cog):
 
     @check.acl2(check.ACLevel.SUBMOD)
     @acl_overwrite_channel_.command(name="list")
-    async def acl_overwrite_channel_list(self, ctx):
+    async def acl_overwrite_channel_list(self, ctx: commands.Context):
         """List ACL channel overwrites."""
         cos = ChannelOverwrite.get_all(ctx.guild.id)
 
         class Item:
-            def __init__(self, obj):
-                channel = ctx.guild.get_channel(obj.channel_id)
-                self.channel = "#" + getattr(channel, "name", str(obj.channel_id))
-                self.command = obj.command
-                self.allow = _(ctx, "yes") if obj.allow else _(ctx, "no")
+            def __init__(self, co: ChannelOverwrite):
+                channel = ctx.guild.get_channel(co.channel_id)
+                self.channel = "#" + getattr(channel, "name", str(co.channel_id))
+                self.command = co.command
+                self.allow = _(ctx, "yes") if co.allow else _(ctx, "no")
 
         items = [Item(co) for co in cos]
 
@@ -736,7 +746,7 @@ class ACL(commands.Cog):
         # sorting priority: command, channel
         items = sorted(items, key=attrgetter("channel", "command"))
 
-        table: List[str] = utils.text.create_table(
+        table: list[str] = utils.text.create_table(
             items,
             header={
                 "command": _(ctx, "Command"),
@@ -751,7 +761,7 @@ class ACL(commands.Cog):
     #
 
     @property
-    def _all_bot_commands(self) -> List[str]:
+    def _all_bot_commands(self) -> list[str]:
         """Return list of registered commands"""
         result = []
         for command in self.bot.walk_commands():
@@ -759,5 +769,5 @@ class ACL(commands.Cog):
         return result
 
 
-async def setup(bot) -> None:
+async def setup(bot: Strawberry) -> None:
     await bot.add_cog(ACL(bot))
