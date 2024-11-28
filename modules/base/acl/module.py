@@ -1,4 +1,5 @@
 from operator import attrgetter
+from typing import Union
 
 import discord
 from discord.ext import commands
@@ -334,31 +335,35 @@ class ACL(commands.Cog):
         uos = UserOverwrite.get_all(ctx.guild.id)
 
         class Item:
-            def __init__(self, obj):
+            def __init__(
+                self, overwrite: Union[RoleOverwrite, ChannelOverwrite, UserOverwrite]
+            ):
                 self.overwrite: str
                 self.value: str
 
-                if type(obj) is RoleOverwrite:
+                if type(overwrite) is RoleOverwrite:
                     self.overwrite = _(ctx, "role")
-                    role = ctx.guild.get_role(obj.role_id)
-                    self.value = getattr(role, "name", str(obj.role_id))
-                elif type(obj) is ChannelOverwrite:
+                    role = ctx.guild.get_role(overwrite.role_id)
+                    self.value = getattr(role, "name", str(overwrite.role_id))
+                elif type(overwrite) is ChannelOverwrite:
                     self.overwrite = _(ctx, "channel")
-                    channel = ctx.guild.get_channel(obj.channel_id)
-                    self.value = "#" + getattr(channel, "name", str(obj.channel_id))
-                elif type(obj) is UserOverwrite:
+                    channel = ctx.guild.get_channel(overwrite.channel_id)
+                    self.value = "#" + getattr(
+                        channel, "name", str(overwrite.channel_id)
+                    )
+                elif type(overwrite) is UserOverwrite:
                     self.overwrite = _(ctx, "user")
-                    member = ctx.guild.get_member(obj.user_id)
+                    member = ctx.guild.get_member(overwrite.user_id)
                     if member:
                         self.value = member.display_name.replace("`", "'")
                     else:
-                        self.value = str(obj.user_id)
+                        self.value = str(overwrite.user_id)
                 else:
                     self.overwrite = _(ctx, "unsupported")
-                    self.value = f"{type(obj).__name__}"
+                    self.value = f"{type(overwrite).__name__}"
 
-                self.command = obj.command
-                self.allow = _(ctx, "yes") if obj.allow else _(ctx, "no")
+                self.command = overwrite.command
+                self.allow = _(ctx, "yes") if overwrite.allow else _(ctx, "no")
 
         items = (
             [Item(ro) for ro in ros]
