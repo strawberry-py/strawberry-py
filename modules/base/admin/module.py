@@ -148,7 +148,7 @@ class Admin(commands.Cog):
             )
 
             class Item:
-                def __init__(self, repository: Repository, line: int, up_to_date):
+                def __init__(self, repository: Repository, line: int, up_to_date: bool):
                     if line == 0:
                         self.name = repository.name
                     else:
@@ -473,7 +473,7 @@ class Admin(commands.Cog):
     @commands.guild_only()
     @check.acl2(check.ACLevel.BOT_OWNER)
     @commands.group(name="module")
-    async def module_(self, ctx):
+    async def module_(self, ctx: commands.Context):
         """Manage modules."""
         await utils.discord.send_help(ctx)
 
