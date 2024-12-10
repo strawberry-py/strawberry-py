@@ -6,22 +6,29 @@ from discord.ext import commands
 
 
 async def get_message(
-    bot: commands.Bot, guild_or_user_id: int, channel_id: int, message_id: int
+    bot: commands.Bot,
+    guild_or_user_id: int,
+    channel_id: int,
+    message_id: int,
+    use_cache: bool = True,
 ) -> Optional[discord.Message]:
     """Get message.
 
-    If the message is contained in bot cache, it is returned from it, to
-    save API calls. Otherwise it is fetched.
+    By default if the message is contained in bot cache,
+    it is returned from it, to save API calls.
+    Otherwise (if not found or use_cache is False) it is fetched.
 
     :param bot: The :class:`~discord.ext.commands.Bot` object.
     :param guild_or_user_id: Guild ID or User ID (if the message is in DMs).
     :param channel_id: Channel ID.
     :param message_id: Message ID.
+    :param use_cache: When False, always fetches the message (default: True).
     :return: Found message or ``None``.
     """
-    query = [m for m in bot.cached_messages if m.id == message_id]
-    if len(query) == 1:
-        return query[0]
+    if use_cache:
+        query = [m for m in bot.cached_messages if m.id == message_id]
+        if len(query) == 1:
+            return query[0]
 
     try:
         guild = bot.get_guild(guild_or_user_id)
