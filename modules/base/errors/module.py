@@ -640,9 +640,23 @@ class Errors(commands.Cog):
 
         if isinstance(error, app_commands.TransformerError):
             return (
-                _(utx, "Command transformer error"),
-                _(utx, "Command transformer error"),
-                ReportTraceback.YES,
+                _(utx, "AppCommand transformer error"),
+                _(
+                    utx,
+                    "Transformer `{transformer}` failed to transform value `{value}` into type `{type}`.",
+                ).format(
+                    transformer=type(error.transformer).__name__,
+                    value=error.value,
+                    type=error.type.name,
+                )
+                + (
+                    _(utx, "Cause: {cause}").format(
+                        cause=type(error.__cause__).__name__
+                    )
+                    if getattr(error, "__cause__ ", None)
+                    else ""
+                ),
+                ReportTraceback.NO,
             )
 
         if isinstance(error, app_commands.CommandLimitReached):

@@ -526,8 +526,14 @@ msgstr Chyba pri volaní príkazu
 msgid Command translation error
 msgstr Chyba prekladu príkazu
 
-msgid Command transformer error
-msgstr Chyba príkazového transformátora
+msgid AppCommand transformer error
+msgstr Chyba AppCommand transformátora
+
+msgid Transformer `{transformer}` failed to transform value `{value}` into type `{type}`.
+msgstr Transformátoru `{transformer}` sa nepodarilo transformovať hodnotu `{value}` na typ `{type}`.
+
+msgid Cause: {cause}
+msgstr Dôvod: {cause}
 
 msgid Command limit reached
 msgstr Bol dosiahnutý limit príkazov

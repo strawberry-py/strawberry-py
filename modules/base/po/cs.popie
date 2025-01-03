@@ -526,8 +526,14 @@ msgstr Chyba ve volání příkazu
 msgid Command translation error
 msgstr Chyba v překladu příkazu
 
-msgid Command transformer error
-msgstr Chyba transformátoru příkazu
+msgid AppCommand transformer error
+msgstr Chyba AppCommand transformátoru
+
+msgid Transformer `{transformer}` failed to transform value `{value}` into type `{type}`.
+msgstr Transformátoru `{transformer}` se nepodařilo transformovat hodnotu `{value}` na typ `{type}`.
+
+msgid Cause: {cause}
+msgstr Důvod: {cause}
 
 msgid Command limit reached
 msgstr Dosažen limit příkazů
@@ -536,7 +542,7 @@ msgid Discord command limit for bot reached
 msgstr Dosažen limit příkazů bota stanovený Discordem
 
 msgid Command already registered
-msgstr Příakz je již registrován
+msgstr Příkaz je již registrován
 
 msgid Command {name} is already registered. Guild ID: {guild_id}.
 msgstr Příkaz {name} je již registrován. ID Guildy: {guild_id}.
