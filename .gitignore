@@ -21,3 +21,7 @@ modules/*
 
 # Backups
 backups/*
+
+# Profiler
+.profiler
+profiler_results.html

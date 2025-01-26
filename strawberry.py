@@ -8,6 +8,8 @@ import traceback
 from pathlib import Path
 from typing import Dict
 
+import pyinstrument
+
 import discord
 
 from pie import exceptions
@@ -15,6 +17,13 @@ from pie.bot import Strawberry
 from pie.cli import COLOR
 
 # Setup checks
+
+profiler_path = ".profiler"
+profiler = None
+if os.path.exists(profiler_path):
+    profiler = pyinstrument.Profiler()
+    profiler.start()
+    print("Profiler started!")
 
 
 def test_dotenv() -> None:
@@ -115,6 +124,11 @@ except asyncio.exceptions.CancelledError:
 except Exception as e:
     print(traceback.format_exc(e))
     result = 2
+
+if profiler:
+    os.remove(profiler_path)
+    profiler.stop()
+    profiler.write_html("profiler_results.html")
 
 print(f"Exit code: {result}")
 if result:
