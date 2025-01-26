@@ -8,6 +8,9 @@ import traceback
 from pathlib import Path
 from typing import Dict
 
+import dotenv
+import pyinstrument
+
 import discord
 
 from pie import exceptions
@@ -15,6 +18,18 @@ from pie.bot import Strawberry
 from pie.cli import COLOR
 
 # Setup checks
+
+dotenv.load_dotenv(".env")  # Reload dotenv
+
+profiler: pyinstrument.Profiler = None
+if os.getenv("PROFILER_ENABLED", "False") == "True":
+    try:
+        interval = float(os.getenv("PROFILER_INTERVAL", 0.001))
+        profiler = pyinstrument.Profiler(interval=interval)
+        profiler.start()
+        print("Profiler started!")
+    except ValueError:
+        print("Profiler could not start - invalid value for PROFILER_INTERVAL")
 
 
 def test_dotenv() -> None:
@@ -115,6 +130,17 @@ except asyncio.exceptions.CancelledError:
 except Exception as e:
     print(traceback.format_exc(e))
     result = 2
+
+if profiler:
+    dotenv.set_key(
+        dotenv_path=".env",
+        key_to_set="PROFILER_ENABLED",
+        value_to_set="False",
+        quote_mode="never",
+        export=False,
+    )
+    profiler.stop()
+    profiler.write_html("profiler_results.html")
 
 print(f"Exit code: {result}")
 if result:
