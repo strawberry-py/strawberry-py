@@ -9,7 +9,7 @@ ENV PYTHONUNBUFFERED 1
 # Ignore hadolint check for version specific apt-get install
 # hadolint ignore=DL3008
 RUN apt-get update && apt-get -y --no-install-recommends install \
-    tzdata git \
+    tzdata openssh-client git \
     && apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/* \
     && git config --global --add safe.directory '*'
 
