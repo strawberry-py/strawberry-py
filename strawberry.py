@@ -24,6 +24,7 @@ dotenv.load_dotenv(".env")  # Reload dotenv
 profiler: pyinstrument.Profiler = None
 if os.getenv("PROFILER_ENABLED", "False") == "True":
     try:
+        os.environ["PROFILER_RUNNING"] = "True"
         interval = float(os.getenv("PROFILER_INTERVAL", 0.001))
         profiler = pyinstrument.Profiler(interval=interval)
         profiler.start()
