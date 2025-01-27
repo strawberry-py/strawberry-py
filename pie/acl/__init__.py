@@ -7,6 +7,7 @@ from typing import Callable, Optional, Set, TypeVar, Union
 import ring
 
 import discord
+from discord import app_commands
 from discord.ext import commands
 
 import pie._tracing
@@ -102,24 +103,48 @@ def acl2(level: ACLevel) -> Callable[[T], T]:
             await ctx.reply(utils.text.sanitise(input, escape=False))
     """
 
-    def predicate(action: Union[commands.Context, discord.Interaction]) -> bool:
-        if type(action) is commands.Context:
-            ctx: commands.Context = action
-            return acl2_function(
-                level=level,
-                bot=ctx.bot,
-                invoker=ctx.author,
-                command=ctx.command.qualified_name,
-                guild=ctx.guild,
-                channel=ctx.channel,
-            )
+    def predicate(action: commands.Context) -> bool:
+        ctx: commands.Context = action
+        return acl2_function(
+            level=level,
+            bot=ctx.bot,
+            invoker=ctx.author,
+            command=ctx.command.qualified_name,
+            guild=ctx.guild,
+            channel=ctx.channel,
+        )
 
+    return commands.check(predicate)
+
+
+def app_acl(level: ACLevel) -> Callable[[T], T]:
+    """A decorator that adds ACL check to a app command.
+
+    Each command has its preferred ACL group set in the decorator. Bot owner
+    can add user and channel overwrites to these decorators, to allow detailed
+    controll over the system with sane defaults provided by the system itself.
+
+    Usage:
+
+    . code-block:: python
+        :linenos:
+
+        from core import check
+
+        ...
+
+        @check.app_acl(check.ACLevel.SUBMOD)
+        @app_commands.command()
+        async def repeat(self, itx, input: str):
+            await itx.response.send(utils.text.sanitise(input, escape=False))
+    """
+
+    def predicate(action: Union[commands.Context, discord.Interaction]) -> bool:
         bot: Union[commands.Bot, commands.AutoShardedBot] = action.client
         invoker: Union[discord.User, discord.Member] = action.user
         guild: discord.Guild = action.guild
         channel: discord.abc.Messageable = action.channel
         command: str = action.command.qualified_name
-
         return acl2_function(
             level=level,
             bot=bot,
@@ -129,7 +154,7 @@ def acl2(level: ACLevel) -> Callable[[T], T]:
             channel=channel,
         )
 
-    return commands.check(predicate)
+    return app_commands.check(predicate)
 
 
 # TODO Make cachable as well?
