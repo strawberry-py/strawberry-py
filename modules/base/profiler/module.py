@@ -25,7 +25,9 @@ class Profiler(
 ):
     def __init__(self, bot: Strawberry):
         self.bot = bot
-        self.log.start()
+        if self.profiler_running:
+            self.counter = 0
+            self.safety_stop.start()
 
     @property
     def profiler_running(self):
@@ -35,16 +37,32 @@ class Profiler(
     def profiler_enabled(self):
         return os.getenv("PROFILER_ENABLED", "False") == "True"
 
-    @tasks.loop(seconds=2.0, count=1)
-    async def log(self) -> None:
-        if self.profiler_running:
+    @tasks.loop(minutes=30.0)
+    async def safety_stop(self) -> None:
+        if self.counter == 0:
             await bot_log.critical(
                 None,
                 None,
-                "The profiler is running! Restart bot to stop the profiler and gather the results!",
+                "The profiler is running! Restart bot to stop the profiler and gather the results! The bot will restart on it's own in 2 hours.",
+            )
+        elif self.counter > 3:
+            await bot_log.critical(
+                None,
+                None,
+                "The profiler has been running for 2 hours. The bot is restarting for safety reasons!",
+            )
+            self.bot.exit_code = 2
+            await self.bot.close(reason="profiler safety mechanism")
+        else:
+            await bot_log.critical(
+                None,
+                None,
+                f"The profiler is running for {self.counter * 30} minutes. It will restart in {120 - (self.counter * 30)} minutes.",
             )
 
-    @log.before_loop
+        self.counter += 1
+
+    @safety_stop.before_loop
     async def before_log(self):
         await self.bot.wait_until_ready()
 
