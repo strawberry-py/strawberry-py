@@ -9,6 +9,7 @@ import ring
 import discord
 from discord import app_commands
 from discord.ext import commands
+from discord.ext.commands import CheckFailure
 
 import pie._tracing
 from pie import i18n
@@ -145,14 +146,18 @@ def app_acl(level: ACLevel) -> Callable[[T], T]:
         guild: discord.Guild = action.guild
         channel: discord.abc.Messageable = action.channel
         command: str = action.command.qualified_name
-        return acl2_function(
-            level=level,
-            bot=bot,
-            invoker=invoker,
-            command=command,
-            guild=guild,
-            channel=channel,
-        )
+        try:
+            result = acl2_function(
+                level=level,
+                bot=bot,
+                invoker=invoker,
+                command=command,
+                guild=guild,
+                channel=channel,
+            )
+        except CheckFailure:
+            return False
+        return result
 
     return app_commands.check(predicate)
 
