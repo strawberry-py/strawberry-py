@@ -2,14 +2,14 @@ from __future__ import annotations
 
 import inspect
 import re
-from typing import Callable, Optional, Set, TypeVar, Union
+from typing import Any, Callable, Optional, Set, TypeVar, Union
 
 import ring
 
 import discord
 from discord import app_commands
 from discord.ext import commands
-from discord.ext.commands import CheckFailure
+from discord.ext.commands._types import CoroFunc
 
 import pie._tracing
 from pie import i18n
@@ -83,7 +83,7 @@ def map_member_to_ACLevel(
 
 
 def acl2(level: ACLevel) -> Callable[[T], T]:
-    """A decorator that adds ACL2 check to a command.
+    """A decorator that adds ACL2 check to a command or app_command.
 
     Each command has its preferred ACL group set in the decorator. Bot owner
     can add user and channel overwrites to these decorators, to allow detailed
@@ -102,64 +102,57 @@ def acl2(level: ACLevel) -> Callable[[T], T]:
         @commands.command()
         async def repeat(self, ctx, *, input: str):
             await ctx.reply(utils.text.sanitise(input, escape=False))
-    """
 
-    def predicate(action: commands.Context) -> bool:
-        ctx: commands.Context = action
-        return acl2_function(
-            level=level,
-            bot=ctx.bot,
-            invoker=ctx.author,
-            command=ctx.command.qualified_name,
-            guild=ctx.guild,
-            channel=ctx.channel,
-        )
-
-    return commands.check(predicate)
-
-
-def app_acl(level: ACLevel) -> Callable[[T], T]:
-    """A decorator that adds ACL check to a app command.
-
-    Each command has its preferred ACL group set in the decorator. Bot owner
-    can add user and channel overwrites to these decorators, to allow detailed
-    controll over the system with sane defaults provided by the system itself.
-
-    Usage:
-
-    . code-block:: python
-        :linenos:
-
-        from core import check
-
-        ...
-
-        @check.app_acl(check.ACLevel.SUBMOD)
+        @check.acl2(check.ACLevel.SUBMOD)
         @app_commands.command()
-        async def repeat(self, itx, input: str):
+        async def talk(self, itx, input: str):
             await itx.response.send(utils.text.sanitise(input, escape=False))
     """
 
     def predicate(action: Union[commands.Context, discord.Interaction]) -> bool:
-        bot: Union[commands.Bot, commands.AutoShardedBot] = action.client
-        invoker: Union[discord.User, discord.Member] = action.user
-        guild: discord.Guild = action.guild
-        channel: discord.abc.Messageable = action.channel
-        command: str = action.command.qualified_name
-        try:
-            result = acl2_function(
+        if type(action) is commands.Context:
+            return acl2_function(
                 level=level,
-                bot=bot,
-                invoker=invoker,
-                command=command,
-                guild=guild,
-                channel=channel,
+                bot=action.bot,
+                invoker=action.author,
+                command=action.command.qualified_name,
+                guild=action.guild,
+                channel=action.channel,
             )
-        except CheckFailure:
-            return False
-        return result
+        return acl2_function(
+            level=level,
+            bot=action.client,
+            invoker=action.user,
+            command=action.command.qualified_name,
+            guild=action.guild,
+            channel=action.channel,
+        )
 
-    return app_commands.check(predicate)
+    def decorator(
+        func: Union[
+            app_commands.commands.Check, commands.Command[Any, ..., Any], CoroFunc
+        ]
+    ):
+        """A combination of app_commands.check() and commands.check()to make things compatible."""
+        if isinstance(
+            func,
+            (
+                app_commands.commands.Command,
+                app_commands.commands.ContextMenu,
+                commands.Command,
+            ),
+        ):
+            func.checks.append(predicate)
+        else:
+            if not hasattr(func, "__discord_app_commands_checks__"):
+                func.__discord_app_commands_checks__ = []
+            func.__discord_app_commands_checks__.append(predicate)
+            if not hasattr(func, "__commands_checks__"):
+                func.__commands_checks__ = []
+            func.__commands_checks__.append(predicate)
+        return func
+
+    return decorator
 
 
 # TODO Make cachable as well?

@@ -1,3 +1,4 @@
+from discord.app_commands import errors
 from discord.ext.commands import CheckFailure
 
 
@@ -88,7 +89,7 @@ class BadTranslation(StrawberryException):
         )
 
 
-class ACLFailure(CheckFailure):
+class ACLFailure(CheckFailure, errors.CheckFailure):
     """Raised by ACL when invocation is blocked by some kind of settings."""
 
     pass
