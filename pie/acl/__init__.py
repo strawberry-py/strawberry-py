@@ -131,7 +131,7 @@ def acl2(level: ACLevel) -> Callable[[T], T]:
     def decorator(
         func: Union[
             app_commands.commands.Check, commands.Command[Any, ..., Any], CoroFunc
-        ]
+        ],
     ):
         """A combination of app_commands.check() and commands.check()to make things compatible."""
         if isinstance(
