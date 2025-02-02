@@ -310,10 +310,11 @@ class Repository:
 
         h = hashlib.sha256()
         with open(file, "rb") as handle:
-            chunk: bytes = b""
-            while chunk != b"":
+            while True:
                 # read 1kB at a time
-                chunk = handle.read(1024)
+                chunk = handle.read(65536)
+                if not chunk:
+                    break
                 h.update(chunk)
         file_hash = h.hexdigest()
         return file_hash
