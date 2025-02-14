@@ -783,3 +783,39 @@ msgstr Nie je určený cieľ logovania.
 
 msgid Supplied arguments didn't match any entries.
 msgstr Dodané argumenty sa nezhodujú so žiadnymi vstupmi.
+
+msgid Profiler is running. The results will be available after bot restart.
+msgstr Profiler je spustený. Výsledky budú k dispozícii po reštarte bota.
+
+msgid Profiler is enabled. The profiling will start after bot restart.
+msgstr Profiler je povolený. Profilovanie sa spustí po reštarte bota.
+
+msgid Profiler is disabled and is not running.
+msgstr Profiler je zakázaný a nie je spustený.
+
+msgid Profiler is already enabled and running.
+msgstr Profiler je už povolený a spustený.
+
+msgid Profiler is already enabled. The profiling will start after bot restart.
+msgstr Profiler je už povolený. Profilovanie sa spustí po reštarte bota.
+
+msgid **Profiler results found!**
+msgstr **Našli sa výsledky profilovania!**
+
+msgid Please make sure that you download them before restart, otherwise it will be overwriten!
+msgstr Pred reštartom sa uistite, že ste si ich stiahli, inak budú prepísané!
+
+msgid Profiler is currently running and will be automatically disabled after bot restart.
+msgstr Profiler je momentálne spustený a po reštarte bota sa automaticky vypne.
+
+msgid Profiler is already disabled.
+msgstr Profiler je už zakázaný.
+
+msgid Profiler is disabled.
+msgstr Profiler je zakázaný.
+
+msgid No report found. You must enable the profiler, restart the bot, let it gather the data and restart the bot again to get the results.
+msgstr Žiadny report nenájdený. Ak chceš získať výsledky, musíš povoliť profilovač, reštartovať bota, nechať ho zhromaždiť údaje a znova ho reštartovať.
+
+msgid Here's the latest report from {created}.
+msgstr Tu je najnovší prehľad z {created}.
