@@ -66,7 +66,7 @@ class Profiler(
     async def before_log(self):
         await self.bot.wait_until_ready()
 
-    @check.app_acl(check.ACLevel.BOT_OWNER)
+    @check.acl2(check.ACLevel.BOT_OWNER)
     @app_commands.command(name="status", description="Show profiler status.")
     async def profiler_status(self, itx: discord.Interaction):
         if self.profiler_running:
@@ -93,7 +93,7 @@ class Profiler(
             _(itx, "Profiler is disabled and is not running."), ephemeral=True
         )
 
-    @check.app_acl(check.ACLevel.BOT_OWNER)
+    @check.acl2(check.ACLevel.BOT_OWNER)
     @app_commands.command(
         name="enable",
         description="Enable profiler. The profiler will be run after bot restart.",
@@ -140,7 +140,7 @@ class Profiler(
         await (await itx.original_response()).edit(content=message)
         await bot_log.info(itx.user, itx.channel, "Profiler was enabled.")
 
-    @check.app_acl(check.ACLevel.BOT_OWNER)
+    @check.acl2(check.ACLevel.BOT_OWNER)
     @app_commands.command(name="disable", description="Disable profiler.")
     async def profiler_disable(self, itx: discord.Interaction):
         if self.profiler_running:
@@ -171,7 +171,7 @@ class Profiler(
         await itx.response.send_message(_(itx, "Profiler is disabled."), ephemeral=True)
         await bot_log.info(itx.user, itx.channel, "Profiler was disabled.")
 
-    @check.app_acl(check.ACLevel.BOT_OWNER)
+    @check.acl2(check.ACLevel.BOT_OWNER)
     @app_commands.command(
         name="download", description="Download profiler results as ZIP file."
     )
