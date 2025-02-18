@@ -1,5 +1,5 @@
 wheel
-discord.py==2.4.0
+discord.py==2.5.0
 GitPython>=3.1.27,<4.0.0
 psycopg2-binary>=2.9.3,<3.0.0
 requests>=2.27.1,<3.0.0
@@ -7,6 +7,5 @@ SQLAlchemy>=2.0.0,<2.1.0
 ring>=0.9.1,<1.0.0
 python-dateutil>=2.8.2,<3.0.0
 alembic>=1.13.3,<2.0.0
-audioop-lts; python_version>='3.13'
 pyinstrument
 python-dotenv
