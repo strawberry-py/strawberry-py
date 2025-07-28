@@ -18,15 +18,10 @@ This code is just the core -- see other [repositories](https://github.com/orgs/s
 
 ## Documentation
 
-### Installation, development
+### Installation, development and user guide
 
 We keep the technical documentation on [ReadTheDocs.io](https://strawberry-py.readthedocs.io/en/latest/).
-There you can find information on how to set up production instance or how to start with the development.
-
-### User guide
-
-Running the bot is just a start.
-To see how you can manage the running instance, see our [GitHub.io](https://strawberry-py.github.io/strawberry-userdocs/) page.
+There you can find information on how to set up production instance, how to start with the development or how you can manage the running instance.
 
 ## Authors
 
