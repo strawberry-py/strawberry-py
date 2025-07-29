@@ -11,6 +11,7 @@ from functools import partial
 import sqlalchemy
 
 import discord
+from discord import app_commands
 from discord.ext import commands
 
 from modules.base.admin.database import BaseAdminModule
@@ -233,6 +234,19 @@ class Strawberry(commands.Bot):
     async def start(self) -> None:
         await self.load_modules()
         await super().start(self.token)
+
+    def get_all_commands(
+        self,
+    ) -> dict[str, commands.Command | app_commands.Command | app_commands.ContextMenu]:
+        bot_commands = {c.qualified_name: c for c in self.walk_commands()}
+        for type in discord.AppCommandType:
+            bot_commands = bot_commands | {
+                c.qualified_name: c
+                for c in self.tree.walk_commands(type=type)
+                if not isinstance(c, app_commands.Group)
+            }
+
+        return bot_commands
 
     # This is required to make the 'bot' object hashable by ring's LRU cache
     # See pie/acl/__init__.py:map_member_to_ACLevel()
