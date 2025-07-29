@@ -11,12 +11,21 @@ VERSION = 1
 
 
 class ACLevel(enum.IntEnum):
+    UNKNOWN: int = 10
     BOT_OWNER: int = 5
     GUILD_OWNER: int = 4
     MOD: int = 3
     SUBMOD: int = 2
     MEMBER: int = 1
     EVERYONE: int = 0
+
+    @staticmethod
+    def get_valid_levels():
+        return ", ".join(
+            f"'{key}'"
+            for key in ACLevel.__members__.keys()
+            if key != ACLevel.UNKNOWN.name
+        )
 
 
 class ACDefault(database.base):

@@ -2,6 +2,7 @@ from operator import attrgetter
 from typing import Union
 
 import discord
+from discord import app_commands
 from discord.ext import commands
 
 import pie.acl
@@ -84,7 +85,7 @@ class ACL(commands.Cog):
         except KeyError:
             await ctx.reply(
                 _(ctx, "Invalid level. Possible options are: {keys}.").format(
-                    keys=", ".join(f"'{key}'" for key in ACLevel.__members__.keys())
+                    keys=ACLevel.get_valid_levels()
                 )
             )
             return
@@ -158,8 +159,7 @@ class ACL(commands.Cog):
             def __init__(self, bot: Strawberry, default: ACDefault):
                 self.command = default.command
                 self.level = default.level.name
-                command_fn = bot.get_command(self.command).callback
-                level = pie.acl.get_hardcoded_ACLevel(command_fn)
+                level = pie.acl.get_hardcoded_ACLevel(bot, self.command)
                 self.default: str = getattr(level, "name", "?")
 
         defaults = ACDefault.get_all(ctx.guild.id)
@@ -192,14 +192,16 @@ class ACL(commands.Cog):
         """
         try:
             level: ACLevel = ACLevel[level]
+            if level == ACLevel.UNKNOWN:
+                raise KeyError()
         except KeyError:
             await ctx.reply(
                 _(ctx, "Invalid level. Possible options are: {keys}.").format(
-                    keys=", ".join(f"'{key}'" for key in ACLevel.__members__.keys())
+                    keys=ACLevel.get_valid_levels()
                 )
             )
             return
-        if command not in self._all_bot_commands:
+        if command not in self.bot.get_all_commands():
             await ctx.reply(_(ctx, "I don't know this command."))
             return
 
@@ -250,7 +252,7 @@ class ACL(commands.Cog):
     @acl_default_.command("remove")
     async def acl_default_remove(self, ctx: commands.Context, command: str):
         """Remove custom ACLevel for a command."""
-        if command not in self._all_bot_commands:
+        if command not in self.bot.get_all_commands():
             await ctx.reply(_(ctx, "I don't know this command."))
             return
 
@@ -284,20 +286,31 @@ class ACL(commands.Cog):
     @acl_default_.command("audit")
     async def acl_default_audit(self, ctx: commands.Context, *, query: str = ""):
         """Display all bot commands and their defaults."""
-        bot_commands = [c for c in self.bot.walk_commands()]
         if len(query):
-            bot_commands = [c for c in bot_commands if query in c.qualified_name]
-        bot_commands = sorted(bot_commands, key=lambda c: c.qualified_name)
+            bot_commands = [
+                command
+                for name, command in self.bot.get_all_commands()
+                if query in name
+            ]
+        else:
+            bot_commands = list(self.bot.get_all_commands().values())
+
+        bot_commands = sorted(bot_commands, key=lambda c: c.qualified_name.lower())
 
         default_overwrites = {}
         for default_overwrite in ACDefault.get_all(ctx.guild.id):
             default_overwrites[default_overwrite.command] = default_overwrite.level
 
         class Item:
-            def __init__(self, bot: Strawberry, command: commands.Command):
+            def __init__(
+                self,
+                bot: Strawberry,
+                command: Union[
+                    commands.Command, app_commands.Command, app_commands.ContextMenu
+                ],
+            ):
                 self.command = command.qualified_name
-                command_fn = bot.get_command(self.command).callback
-                level = pie.acl.get_hardcoded_ACLevel(command_fn)
+                level = pie.acl.get_hardcoded_ACLevel(bot, command.qualified_name)
                 self.level: str = getattr(level, "name", "?")
                 try:
                     self.db_level = default_overwrites[self.command].name
@@ -307,6 +320,14 @@ class ACL(commands.Cog):
         items = [Item(self.bot, command) for command in bot_commands]
         # put commands with overwrites first
         items = sorted(items, key=lambda item: item.db_level, reverse=True)
+
+        # make items unique - e.g. hybrid commands
+        seen = set()
+        items = [
+            item
+            for item in items
+            if item.command not in seen and not seen.add(item.command)
+        ]
 
         table: list[str] = utils.text.create_table(
             items,
@@ -403,7 +424,7 @@ class ACL(commands.Cog):
         self, ctx: commands.Context, command: str, role: discord.Role, allow: bool
     ):
         """Add ACL role overwrite."""
-        if command not in self._all_bot_commands:
+        if command not in self.bot.get_all_commands():
             await ctx.reply(_(ctx, "I don't know this command."))
             return
 
@@ -524,7 +545,7 @@ class ACL(commands.Cog):
         self, ctx: commands.Context, command: str, user: discord.Member, allow: bool
     ):
         """Add ACL user overwrite."""
-        if command not in self._all_bot_commands:
+        if command not in self.bot.get_all_commands():
             await ctx.reply(_(ctx, "I don't know this command."))
             return
 
@@ -654,7 +675,7 @@ class ACL(commands.Cog):
         allow: bool,
     ):
         """Add ACL channel overwrite."""
-        if command not in self._all_bot_commands:
+        if command not in self.bot.get_all_commands():
             await ctx.reply(_(ctx, "I don't know this command."))
             return
 
@@ -762,16 +783,6 @@ class ACL(commands.Cog):
 
         for page in table:
             await ctx.send("```" + page + "```")
-
-    #
-
-    @property
-    def _all_bot_commands(self) -> list[str]:
-        """Return list of registered commands"""
-        result = []
-        for command in self.bot.walk_commands():
-            result.append(command.qualified_name)
-        return result
 
 
 async def setup(bot: Strawberry) -> None:

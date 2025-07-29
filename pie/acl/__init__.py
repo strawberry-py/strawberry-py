@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import inspect
 import re
-from typing import Any, Callable, Optional, Set, TypeVar, Union
+from typing import TYPE_CHECKING, Any, Callable, Optional, Set, TypeVar, Union
 
 import ring
 
@@ -29,6 +29,9 @@ from pie.exceptions import (
     NegativeUserOverwrite,
 )
 
+if TYPE_CHECKING:
+    from pie.bot import Strawberry
+
 _trace: Callable = pie._tracing.register("pie_acl")
 
 _ = i18n.Translator(__file__).translate
@@ -38,7 +41,7 @@ T = TypeVar("T")
 @ring.lru(expire=10)
 def map_member_to_ACLevel(
     *,
-    bot: commands.Bot,
+    bot: Strawberry,
     member: discord.Member,
 ):
     """Map member to their ACLevel."""
@@ -158,7 +161,7 @@ def acl2(level: ACLevel) -> Callable[[T], T]:
 # TODO Make cachable as well?
 def acl2_function(
     level: ACLevel,
-    bot: Union[commands.Bot, commands.AutoShardedBot],
+    bot: Union[Strawberry],
     invoker: Union[discord.User, discord.Member],
     command: str,
     guild: discord.Guild = None,
@@ -234,9 +237,13 @@ def acl2_function(
 # Utility functions
 
 
-def get_hardcoded_ACLevel(command: Callable) -> Optional[ACLevel]:
+def get_hardcoded_ACLevel(bot: Strawberry, command: str) -> Optional[ACLevel]:
     """Inspect the source code and extract ACLevel from the decorator."""
-    source = inspect.getsource(command)
+    commands = bot.get_all_commands()
+    command_obj = commands.get(command, None)
+    if not command_obj:
+        return ACLevel.UNKNOWN
+    source = inspect.getsource(command_obj.callback)
     match = re.search(r"acl2\(check\.ACLevel\.(.*)\)", source)
     if not match:
         return None
@@ -244,21 +251,18 @@ def get_hardcoded_ACLevel(command: Callable) -> Optional[ACLevel]:
     return ACLevel[level]
 
 
-def get_true_ACLevel(
-    bot: commands.Bot, guild_id: int, command: str
-) -> Optional[ACLevel]:
+def get_true_ACLevel(bot: Strawberry, guild_id: int, command: str) -> Optional[ACLevel]:
     """Get command's ACLevel from database or from the source code."""
     default_overwrite = ACDefault.get(guild_id, command)
     if default_overwrite:
         level = default_overwrite.level
     else:
-        command_obj = bot.get_command(command)
-        level = get_hardcoded_ACLevel(command_obj.callback)
+        level = get_hardcoded_ACLevel(bot, command)
     return level
 
 
 def can_invoke_command(
-    bot: commands.Bot, utx: commands.Context | discord.Interaction, command: str
+    bot: Strawberry, utx: commands.Context | discord.Interaction, command: str
 ) -> Optional[bool]:
     """Check if the command is invokable in supplied context.
 
