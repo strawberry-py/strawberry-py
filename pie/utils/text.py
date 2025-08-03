@@ -26,12 +26,18 @@ def sanitise(
         return string[:limit]
 
 
-def split(string: str, limit: int = 1990, min_length: int = 1000) -> List[str]:
+def split(
+    string: str,
+    limit: int = 1990,
+    min_length: int = 1000,
+    mark_continuation: bool = False,
+) -> List[str]:
     """Split text into multiple smaller ones.
 
     :param string: A text string to split.
     :param limit: How long the output strings should be.
     :param min_length: Minimal length of the output strings.
+    :param mark_continuation: Whether to mark continuation of message.
     :return: A string split into a list of smaller lines with maximal length of
         ``limit``.
     """
@@ -44,9 +50,9 @@ def split(string: str, limit: int = 1990, min_length: int = 1000) -> List[str]:
     # split message to chunks of roughly limit chars
     while len(parts[len(parts) - 1]) > limit:
         # determine where to split the message
-        split_pos = parts[len(parts) - 1].find(" ", limit)
+        split_pos = parts[len(parts) - 1].find(" ", limit - 100)
         if split_pos > limit or split_pos <= 0:
-            split_pos = parts[len(parts) - 1].rfind(" ", min_length, limit)
+            split_pos = parts[len(parts) - 1].rfind(" ", min_length, limit - 100)
         if split_pos > limit or split_pos <= 0:
             split_pos = limit
 
@@ -98,6 +104,8 @@ def split(string: str, limit: int = 1990, min_length: int = 1000) -> List[str]:
 
         parts.append(
             "***Continuation***\n"
+            if mark_continuation and limit > 50
+            else ""
             + marks_to_add_to_start
             + parts[len(parts) - 1][split_pos:].removeprefix(" ")
         )  # mark remaining text as continuation
