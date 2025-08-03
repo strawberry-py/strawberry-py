@@ -13,6 +13,47 @@ def test_text_split():
     assert ["abcd", "efgh"] == utils.text.split("abcdefgh", limit=4)
 
 
+def test_text_smart_split():
+    assert ["abc", "def"] == utils.text.smart_split("abcdef", limit=3)
+    assert ["abcd", "efgh"] == utils.text.smart_split("abcdefgh", limit=4)
+    assert [
+        "Lorem ipsum dolor sit amet,",
+        "consectetuer adipiscing elit.",
+    ] == utils.text.smart_split(
+        "Lorem ipsum dolor sit amet, consectetuer adipiscing elit.", limit=47
+    )
+    assert [
+        "Lorem ipsum dolor sit amet, consectetuer",
+        "adipiscing elit.",
+    ] == utils.text.smart_split(
+        "Lorem ipsum dolor sit amet, consectetuer adipiscing elit.", limit=49
+    )
+    assert [
+        "Lorem ipsum dolor sit amet, consectetuer",
+        "adipiscing elit.",
+    ] == utils.text.smart_split(
+        "Lorem ipsum dolor sit amet, consectetuer adipiscing elit.", limit=51
+    )
+    assert [
+        "Lorem ipsum dolor sit amet, consectetuer",
+        "***Continuation***\nadipiscing elit.",
+    ] == utils.text.smart_split(
+        "Lorem ipsum dolor sit amet, consectetuer adipiscing elit.",
+        limit=51,
+        mark_continuation=True,
+    )
+    assert [
+        "Lorem ipsum dolor sit amet,",
+        "***Continuation***\n***consectetuer adipiscing***",
+        "***Continuation***\nelit.",
+    ] == utils.text.smart_split(
+        "Lorem ipsum dolor sit amet, ***consectetuer adipiscing*** elit.",
+        limit=51,
+        min_length=25,
+        mark_continuation=True,
+    )
+
+
 def test_text_split_lines():
     assert ["ab\ncd", "ef\ng"] == utils.text.split_lines(
         ["ab", "cd", "ef", "g"], limit=5
