@@ -52,6 +52,14 @@ def test_text_smart_split():
         min_length=25,
         mark_continuation=True,
     )
+    assert [
+        "# Lorem ipsum dolor sit amet, consectetuer",
+        "***Continuation***\n# adipiscing elit.",
+    ] == utils.text.smart_split(
+        "# Lorem ipsum dolor sit amet, consectetuer adipiscing elit.",
+        limit=51,
+        mark_continuation=True,
+    )
 
 
 def test_text_split_lines():
