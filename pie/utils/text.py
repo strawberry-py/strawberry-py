@@ -26,7 +26,18 @@ def sanitise(
         return string[:limit]
 
 
-def split(
+def split(string: str, limit: int = 1990) -> List[str]:
+    """Split text into multiple smaller ones.
+
+    :param string: A text string to split.
+    :param limit: How long the output strings should be.
+    :return: A string split into a list of smaller lines with maximal length of
+        ``limit``.
+    """
+    return list(string[0 + i : limit + i] for i in range(0, len(string), limit))
+
+
+def smart_split(
     string: str,
     limit: int = 1990,
     min_length: int = 1000,
@@ -45,20 +56,21 @@ def split(
     parts = [string]
 
     # sanitize limits
-    min_length = min(abs(min_length), 1900, limit)
+    min_length = min(abs(min_length), 1900, limit - 100)
+    min_length = max(25, min_length) if mark_continuation else min_length
     limit = min(1990, abs(limit))
     # split message to chunks of roughly limit chars
     while len(parts[len(parts) - 1]) > limit:
         # determine where to split the message
-        split_pos = parts[len(parts) - 1].find(" ", limit - 100)
+        split_pos = parts[len(parts) - 1].find(" ", limit - 20)
         if split_pos > limit or split_pos <= 0:
-            split_pos = parts[len(parts) - 1].rfind(" ", min_length, limit - 100)
+            split_pos = parts[len(parts) - 1].rfind(" ", min_length, limit - 20)
         if split_pos > limit or split_pos <= 0:
             split_pos = limit
 
         split_pos_old = split_pos
 
-        part = parts[len(parts) - 1][:split_pos]
+        part = (str)(parts[len(parts) - 1][:split_pos])
 
         markdown_sanitization_success = False
 
@@ -69,26 +81,33 @@ def split(
             for mark in markdown_marks:
                 if part.count(mark) % 2 != 0:
                     split_pos = part.rfind(mark)
-                    part = part[:split_pos]
+                    part = (str)(part[:split_pos])
                     markdown_sanitization_success = False
 
         # if by trying to keep markdown marks complete part to split became to short, add ends of markdown marks to the end
         marks_to_add_to_start = ""
         if split_pos < min_length or split_pos <= 0:
             split_pos = split_pos_old
+            part = (str)(parts[len(parts) - 1][:split_pos])
             for mark in markdown_marks:
-                if part.count(mark) % 2 == 0:
-                    pass
-                else:
-                    part += mark
-                    marks_to_add_to_start += mark
+                if part.count(mark) % 2 != 0:
+                    tmp_pos = parts[len(parts) - 1].find(mark, split_pos) + len(mark)
+                    if 0 < tmp_pos <= limit:
+                        split_pos = tmp_pos
+                        part = (str)(parts[len(parts) - 1][:split_pos])
+                    if part.count(mark) % 2 != 0:
+                        part = (str)(part + mark)
+                        marks_to_add_to_start += mark
 
         # if by adding ends of markdown marks part became too long split it again
-        if len(part) > 2000:
-            parts = split(
-                part, limit - 20
+        if len(part) > min(2000, limit + 10):
+            tmp_parts = smart_split(
+                part,
+                limit - 20,
+                min_length=min_length,
+                mark_continuation=mark_continuation,
             )  # make space for potentially adding ends of markdown marks, if it's second pass
-            part = parts[0]
+            part = (str)(tmp_parts[0])
             split_pos = len(part)
 
         # check if text is supposed to be bigger, smaller or citation
@@ -102,10 +121,10 @@ def split(
                     mark += ">>> "
                 marks_to_add_to_start = mark + marks_to_add_to_start
 
+        part = (str)(part.removesuffix(" "))
+
         parts.append(
-            "***Continuation***\n"
-            if mark_continuation and limit > 50
-            else ""
+            ("***Continuation***\n" if mark_continuation and limit > 50 else "")
             + marks_to_add_to_start
             + parts[len(parts) - 1][split_pos:].removeprefix(" ")
         )  # mark remaining text as continuation
