@@ -49,8 +49,7 @@ def smart_split(
     :param limit: How long the output strings should be.
     :param min_length: Minimal length of the output strings.
     :param mark_continuation: Whether to mark continuation of message.
-    :return: A string split into a list of smaller lines with maximal length of
-        ``limit``.
+    :return: List of splitted strings with max length of `limit
     """
 
     parts = [string]
