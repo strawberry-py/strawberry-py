@@ -40,7 +40,31 @@ def test_text_smart_split():
     ] == utils.text.smart_split(
         "Lorem ipsum dolor sit amet, consectetuer adipiscing elit.",
         limit=51,
-        mark_continuation=True,
+        mark_continuation="***Continuation***\n",
+    )
+    assert [
+        "Lorem ipsum dolor sit amet, consectetuer",
+        "adipiscing elit.",
+    ] == utils.text.smart_split(
+        "Lorem ipsum dolor sit amet, consectetuer adipiscing elit.",
+        limit=51,
+        mark_continuation="",
+    )
+    assert [
+        "Lorem ipsum dolor sit amet, consectetuer",
+        "__shrug__adipiscing elit.",
+    ] == utils.text.smart_split(
+        "Lorem ipsum dolor sit amet, consectetuer adipiscing elit.",
+        limit=51,
+        mark_continuation="__shrug__",
+    )
+    assert [
+        "Lorem ipsum dolor sit amet, consectetuer",
+        "adipiscing elit.",
+    ] == utils.text.smart_split(
+        "Lorem ipsum dolor sit amet, consectetuer adipiscing elit.",
+        limit=51,
+        mark_continuation=None,
     )
     assert [
         "Lorem ipsum dolor sit amet,",
@@ -50,7 +74,7 @@ def test_text_smart_split():
         "Lorem ipsum dolor sit amet, ***consectetuer adipiscing*** elit.",
         limit=51,
         min_length=25,
-        mark_continuation=True,
+        mark_continuation="***Continuation***\n",
     )
     assert [
         "# Lorem ipsum dolor sit amet, consectetuer",
@@ -58,7 +82,7 @@ def test_text_smart_split():
     ] == utils.text.smart_split(
         "# Lorem ipsum dolor sit amet, consectetuer adipiscing elit.",
         limit=51,
-        mark_continuation=True,
+        mark_continuation="***Continuation***\n",
     )
     assert [
         "# Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Fusce aliquam vestibulum ipsum. Phasellus faucibus "
@@ -101,7 +125,7 @@ def test_text_smart_split():
         + "voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla "
         + "pariatur? Aliquam erat volutpat. Nulla accumsan, elit sit amet varius semper, nulla mauris mollis quam, "
         + "tempor suscipit diam nulla vel leo. Pellentesque pretium lectus id turpis. Nemo enim ipsam volup",
-        mark_continuation=True,
+        mark_continuation="***Continuation***\n",
     )
     assert [
         "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Fusce aliquam vestibulum ipsum. Phasellus faucibus "
@@ -144,7 +168,7 @@ def test_text_smart_split():
         + "voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla "
         + "pariatur? Aliquam erat volutpat. Nulla accumsan, elit sit amet varius semper, nulla mauris mollis quam, "
         + "tempor suscipit diam nulla vel leo. __***Pellentesque pretium lectus id turpis. Nemo enim***__ ipsam volup",
-        mark_continuation=True,
+        mark_continuation="***Continuation***\n",
     )
 
 
