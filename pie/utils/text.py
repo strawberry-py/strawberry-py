@@ -55,6 +55,7 @@ def smart_split(
     parts = [string]
 
     # sanitize limits
+    mark_continuation = "" if mark_continuation is None else mark_continuation
     min_length = min(abs(min_length), 1900, limit - 100)
     min_length = (
         max(len(mark_continuation) + 5, min_length)
