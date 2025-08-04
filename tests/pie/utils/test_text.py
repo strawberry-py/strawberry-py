@@ -43,6 +43,30 @@ def test_text_smart_split():
         mark_continuation="***Continuation***\n",
     )
     assert [
+        "Lorem ipsum dolor sit amet, consectetuer",
+        "adipiscing elit.",
+    ] == utils.text.smart_split(
+        "Lorem ipsum dolor sit amet, consectetuer adipiscing elit.",
+        limit=51,
+        mark_continuation="",
+    )
+    assert [
+        "Lorem ipsum dolor sit amet, consectetuer",
+        "__shrug__adipiscing elit.",
+    ] == utils.text.smart_split(
+        "Lorem ipsum dolor sit amet, consectetuer adipiscing elit.",
+        limit=51,
+        mark_continuation="__shrug__",
+    )
+    assert [
+        "Lorem ipsum dolor sit amet, consectetuer",
+        "adipiscing elit.",
+    ] == utils.text.smart_split(
+        "Lorem ipsum dolor sit amet, consectetuer adipiscing elit.",
+        limit=51,
+        mark_continuation=None,
+    )
+    assert [
         "Lorem ipsum dolor sit amet,",
         "***Continuation***\n***consectetuer adipiscing***",
         "***Continuation***\nelit.",
