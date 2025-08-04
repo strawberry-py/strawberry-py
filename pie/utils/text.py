@@ -41,14 +41,14 @@ def smart_split(
     string: str,
     limit: int = 1990,
     min_length: int = 1000,
-    mark_continuation: bool = False,
+    mark_continuation: str = "",
 ) -> List[str]:
     """Split text into multiple smaller ones.
 
     :param string: A text string to split.
     :param limit: How long the output strings should be.
     :param min_length: Minimal length of the output strings.
-    :param mark_continuation: Whether to mark continuation of message.
+    :param mark_continuation: Continuation mark of message.
     :return: List of splitted strings with max length of ``limit``
     """
 
@@ -56,7 +56,11 @@ def smart_split(
 
     # sanitize limits
     min_length = min(abs(min_length), 1900, limit - 100)
-    min_length = max(25, min_length) if mark_continuation else min_length
+    min_length = (
+        max(len(mark_continuation) + 5, min_length)
+        if mark_continuation != ""
+        else min_length
+    )
     limit = min(1990, abs(limit))
     # split message to chunks of roughly limit chars
     while len(parts[len(parts) - 1]) > limit:
@@ -123,7 +127,7 @@ def smart_split(
         part = (str)(part.removesuffix(" "))
 
         parts.append(
-            ("***Continuation***\n" if mark_continuation and limit > 50 else "")
+            (mark_continuation if limit > 50 else "")
             + marks_to_add_to_start
             + parts[len(parts) - 1][split_pos:].removeprefix(" ")
         )  # mark remaining text as continuation
