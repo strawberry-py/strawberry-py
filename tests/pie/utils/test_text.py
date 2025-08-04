@@ -60,6 +60,92 @@ def test_text_smart_split():
         limit=51,
         mark_continuation=True,
     )
+    assert [
+        "# Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Fusce aliquam vestibulum ipsum. Phasellus faucibus "
+        + "molestie nisl. Etiam sapien elit, consequat eget, tristique non, venenatis quis, ante. Duis aute irure dolor "
+        + "in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Pellentesque sapien. Etiam "
+        + "egestas wisi a erat. Fusce suscipit libero eget elit. Nullam sit amet magna in magna gravida vehicula. Nulla "
+        + "turpis magna, cursus sit amet, suscipit a, interdum id, felis. Temporibus autem quibusdam et aut officiis "
+        + "debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non "
+        + "recusandae. Aliquam in lorem sit amet leo accumsan lacinia. Duis sapien nunc, commodo et, interdum suscipit, "
+        + "sollicitudin et, dolorClass aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos "
+        + "hymenaeos. Nulla non arcu lacinia neque faucibus fringilla. Nemo enim ipsam voluptatem quia voluptas sit "
+        + "aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi "
+        + "nesciunt. Maecenas libero. Nullam sit amet magna in magna gravida vehicula. Integer tempor. In laoreet, "
+        + "magna id viverra tincidunt, sem odio bibendum justo, vel imperdiet sapien wisi sed libero. Nunc tincidunt "
+        + "ante vitae massa. Nullam dapibus fermentum ipsum. Vestibulum fermentum tortor id mi. In rutrum. Etiam sapien "
+        + "elit, consequat eget, tristique non, venenatis quis, ante. Duis viverra diam non justo. Fusce aliquam "
+        + "vestibulum ipsum. Aliquam ante.Etiam bibendum elit eget erat. Nullam at arcu a est sollicitudin euismod. "
+        + "Fusce wisi. Nullam sit amet magna in magna gravida vehicula. Quis autem vel eum iure reprehenderit qui in ea "
+        + "voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla "
+        + "pariatur? Aliquam erat volutpat. Nulla accumsan, elit sit amet varius semper, nulla mauris mollis quam, "
+        + "tempor suscipit diam nulla vel leo. Pellentesque pretium lectus id",
+        "***Continuation***\n# turpis. Nemo enim ipsam volup",
+    ] == utils.text.smart_split(
+        "# Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Fusce aliquam vestibulum ipsum. Phasellus faucibus "
+        + "molestie nisl. Etiam sapien elit, consequat eget, tristique non, venenatis quis, ante. Duis aute irure dolor "
+        + "in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Pellentesque sapien. Etiam "
+        + "egestas wisi a erat. Fusce suscipit libero eget elit. Nullam sit amet magna in magna gravida vehicula. Nulla "
+        + "turpis magna, cursus sit amet, suscipit a, interdum id, felis. Temporibus autem quibusdam et aut officiis "
+        + "debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non "
+        + "recusandae. Aliquam in lorem sit amet leo accumsan lacinia. Duis sapien nunc, commodo et, interdum suscipit, "
+        + "sollicitudin et, dolorClass aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos "
+        + "hymenaeos. Nulla non arcu lacinia neque faucibus fringilla. Nemo enim ipsam voluptatem quia voluptas sit "
+        + "aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi "
+        + "nesciunt. Maecenas libero. Nullam sit amet magna in magna gravida vehicula. Integer tempor. In laoreet, "
+        + "magna id viverra tincidunt, sem odio bibendum justo, vel imperdiet sapien wisi sed libero. Nunc tincidunt "
+        + "ante vitae massa. Nullam dapibus fermentum ipsum. Vestibulum fermentum tortor id mi. In rutrum. Etiam sapien "
+        + "elit, consequat eget, tristique non, venenatis quis, ante. Duis viverra diam non justo. Fusce aliquam "
+        + "vestibulum ipsum. Aliquam ante.Etiam bibendum elit eget erat. Nullam at arcu a est sollicitudin euismod. "
+        + "Fusce wisi. Nullam sit amet magna in magna gravida vehicula. Quis autem vel eum iure reprehenderit qui in ea "
+        + "voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla "
+        + "pariatur? Aliquam erat volutpat. Nulla accumsan, elit sit amet varius semper, nulla mauris mollis quam, "
+        + "tempor suscipit diam nulla vel leo. Pellentesque pretium lectus id turpis. Nemo enim ipsam volup",
+        mark_continuation=True,
+    )
+    assert [
+        "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Fusce aliquam vestibulum ipsum. Phasellus faucibus "
+        + "molestie nisl. Etiam sapien elit, consequat eget, tristique non, venenatis quis, ante. Duis aute irure dolor "
+        + "in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Pellentesque sapien. Etiam "
+        + "egestas wisi a erat. Fusce suscipit libero eget elit. Nullam sit amet magna in magna gravida vehicula. Nulla "
+        + "turpis magna, cursus sit amet, suscipit a, interdum id, felis. Temporibus autem quibusdam et aut officiis "
+        + "debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non "
+        + "recusandae. Aliquam in lorem sit amet leo accumsan lacinia. Duis sapien nunc, commodo et, interdum suscipit, "
+        + "sollicitudin et, dolorClass aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos "
+        + "hymenaeos. Nulla non arcu lacinia neque faucibus fringilla. Nemo enim ipsam voluptatem quia voluptas sit "
+        + "aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi "
+        + "nesciunt. Maecenas libero. Nullam sit amet magna in magna gravida vehicula. Integer tempor. In laoreet, "
+        + "magna id viverra tincidunt, sem odio bibendum justo, vel imperdiet sapien wisi sed libero. Nunc tincidunt "
+        + "ante vitae massa. Nullam dapibus fermentum ipsum. Vestibulum fermentum tortor id mi. In rutrum. Etiam sapien "
+        + "elit, consequat eget, tristique non, venenatis quis, ante. Duis viverra diam non justo. Fusce aliquam "
+        + "vestibulum ipsum. Aliquam ante.Etiam bibendum elit eget erat. Nullam at arcu a est sollicitudin euismod. "
+        + "Fusce wisi. Nullam sit amet magna in magna gravida vehicula. Quis autem vel eum iure reprehenderit qui in ea "
+        + "voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla "
+        + "pariatur? Aliquam erat volutpat. Nulla accumsan, elit sit amet varius semper, nulla mauris mollis quam, "
+        + "tempor suscipit diam nulla vel leo.",
+        "***Continuation***\n__***Pellentesque pretium lectus id turpis. Nemo enim***__ ipsam volup",
+    ] == utils.text.smart_split(
+        "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Fusce aliquam vestibulum ipsum. Phasellus faucibus "
+        + "molestie nisl. Etiam sapien elit, consequat eget, tristique non, venenatis quis, ante. Duis aute irure dolor "
+        + "in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Pellentesque sapien. Etiam "
+        + "egestas wisi a erat. Fusce suscipit libero eget elit. Nullam sit amet magna in magna gravida vehicula. Nulla "
+        + "turpis magna, cursus sit amet, suscipit a, interdum id, felis. Temporibus autem quibusdam et aut officiis "
+        + "debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non "
+        + "recusandae. Aliquam in lorem sit amet leo accumsan lacinia. Duis sapien nunc, commodo et, interdum suscipit, "
+        + "sollicitudin et, dolorClass aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos "
+        + "hymenaeos. Nulla non arcu lacinia neque faucibus fringilla. Nemo enim ipsam voluptatem quia voluptas sit "
+        + "aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi "
+        + "nesciunt. Maecenas libero. Nullam sit amet magna in magna gravida vehicula. Integer tempor. In laoreet, "
+        + "magna id viverra tincidunt, sem odio bibendum justo, vel imperdiet sapien wisi sed libero. Nunc tincidunt "
+        + "ante vitae massa. Nullam dapibus fermentum ipsum. Vestibulum fermentum tortor id mi. In rutrum. Etiam sapien "
+        + "elit, consequat eget, tristique non, venenatis quis, ante. Duis viverra diam non justo. Fusce aliquam "
+        + "vestibulum ipsum. Aliquam ante.Etiam bibendum elit eget erat. Nullam at arcu a est sollicitudin euismod. "
+        + "Fusce wisi. Nullam sit amet magna in magna gravida vehicula. Quis autem vel eum iure reprehenderit qui in ea "
+        + "voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla "
+        + "pariatur? Aliquam erat volutpat. Nulla accumsan, elit sit amet varius semper, nulla mauris mollis quam, "
+        + "tempor suscipit diam nulla vel leo. __***Pellentesque pretium lectus id turpis. Nemo enim***__ ipsam volup",
+        mark_continuation=True,
+    )
 
 
 def test_text_split_lines():
