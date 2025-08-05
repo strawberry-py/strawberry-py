@@ -63,8 +63,10 @@ def smart_split(
         else min_length
     )
     limit = min(1990, abs(limit))
+
     # split message to chunks of roughly limit chars
     while len(parts[len(parts) - 1]) > limit:
+
         # determine where to split the message
         split_pos = parts[len(parts) - 1].find(" ", limit - 20)
         if split_pos > limit or split_pos <= 0:
@@ -72,13 +74,15 @@ def smart_split(
         if split_pos > limit or split_pos <= 0:
             split_pos = limit
 
-        split_pos_old = split_pos
+        split_pos_old = (
+            split_pos  # save found value, it might get useful, if part gets too short
+        )
 
-        part = (str)(parts[len(parts) - 1][:split_pos])
+        part = (str)(parts[len(parts) - 1][:split_pos])  # get part
 
         markdown_sanitization_success = False
 
-        # check if markdown marks aren't spilt in half
+        # check if markdown marks aren't split in half
         markdown_marks = ["~~", "***", "**", "*", "__", "_", "```", "`"]
         while not markdown_sanitization_success:
             markdown_sanitization_success = True
@@ -92,13 +96,17 @@ def smart_split(
         marks_to_add_to_start = ""
         if split_pos < min_length or split_pos <= 0:
             split_pos = split_pos_old
-            part = (str)(parts[len(parts) - 1][:split_pos])
+            part = (str)(
+                parts[len(parts) - 1][:split_pos]
+            )  # update part using new split pos
             for mark in markdown_marks:
                 if part.count(mark) % 2 != 0:
                     tmp_pos = parts[len(parts) - 1].find(mark, split_pos) + len(mark)
+                    # try to move split after end of markdown mark, if part is still shorter than limit use it
                     if 0 < tmp_pos <= limit:
                         split_pos = tmp_pos
                         part = (str)(parts[len(parts) - 1][:split_pos])
+                    # if there are odd number of markdown marks, end them and save them to add them to next part
                     if part.count(mark) % 2 != 0:
                         part = (str)(part + mark)
                         marks_to_add_to_start += mark
@@ -125,13 +133,18 @@ def smart_split(
                     mark += ">>> "
                 marks_to_add_to_start = mark + marks_to_add_to_start
 
-        part = (str)(part.removesuffix(" "))
+        part = (str)(
+            part.removesuffix(" ")
+        )  # remove space from start of part, it might end up there because of moving split to end of markdown mark
 
-        tmp = parts[len(parts) - 1][split_pos:].removeprefix(" ")
+        tmp = parts[len(parts) - 1][split_pos:].removeprefix(
+            " "
+        )  # save rest of message
 
         parts.append(
             (
                 (
+                    # if next part starts with \n remove it from continuation mark
                     (
                         mark_continuation.rstrip()
                         if tmp.startswith("\n")
@@ -140,11 +153,13 @@ def smart_split(
                     if limit > len(mark_continuation) + 20
                     else ""
                 )
-                + (marks_to_add_to_start if len(tmp.split("\n")[0].strip()) > 0 else "")
+                + (
+                    marks_to_add_to_start if len(tmp.split("\n")[0].strip()) > 0 else ""
+                )  # add start of markdown marks if there is some text before new line
                 if len(tmp.strip()) > 0
                 else ""
-            )
-            + tmp
+            )  # add this part only if there is some non blank spaces string in next part
+            + tmp  # add the next part
         )  # mark remaining text as continuation
         parts[(len(parts) - 2)] = (
             part  # update previous part to be roughly limit chars long
