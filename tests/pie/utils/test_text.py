@@ -170,6 +170,55 @@ def test_text_smart_split():
         + "tempor suscipit diam nulla vel leo. __***Pellentesque pretium lectus id turpis. Nemo enim***__ ipsam volup",
         mark_continuation="***Continuation***\n",
     )
+    assert [
+        "> **[prostě server] matej377:** Loremipsumdolorsitamet,"
+        + "consectetueradipiscingelit.Mauriselementummaurisvitaetortor.Utenimadminimveniam,"
+        + "quisnostrudexercitationullamcolaborisnisiutaliquipexeacommodoconsequat.Namliberotempore,"
+        + "cumsolutanobisesteligendioptiocumquenihilimpeditquominusidquodmaximeplaceatfacerepossimus,"
+        + "omnisvoluptasassumendaest,omnisdolorrepellendus.Praesentdapibus.Nullapulvinareleifendsem.Aliquameratvolutpat"
+        + ".Nullanonlectussednislmolestiemalesuada.Maurissuscipit,ligulasitametpharetrasemper,nibhantecursuspurus,"
+        + "velsagittisvelitmaurisvelmetus.Fusceduileo,imperdietin,aliquamsitamet,feugiateu,"
+        + "orci.Aliquaminloremsitametleoaccumsanlacinia.Pellentesquearcu.Fusceconsectetuerrisusanunc.Craspedelibero,"
+        + "dapibusnec,pretiumsitamet,temporquis.Etiamduisem,fermentumvitae,sagittisid,malesuadain,"
+        + "quam.Sedconvallismagnaeusem.Namsedtellusidmagnaelementumtincidunt.Maecenassollicitudin"
+        + ".Etiamdictumtinciduntdiam.Morbiimperdiet,maurisacauctordictum,nislligulaegestasnulla,"
+        + "etsollicitudinsempurusinlacus.Fusceconsectetuerrisusanunc.Fuscetellus.Quisqueporta.Curabiturligulasapien,"
+        + "pulvinaravestibulumquis,facilisisvelsapien.Integerimperdietlectusquisjusto.Etiamquisquam"
+        + ".Praesentvitaearcutempornequelaciniapretium.Fuscewisi.Praesentvitaearcutempornequelaciniapretium"
+        + ".Mauristinciduntsemsedarcu.Fusceconsectetuerrisusanunc.Nullanonlectussednislmolestiemalesuada.Nuncauctor"
+        + ".Aliquamiddolor.Maecenaslibero.Pellentesquepretiumlectusidturpis.Mauristinciduntsemsedarcu.Namliberotempore,"
+        + "cumsolutanobisesteligendioptiocumquenihilimpeditquominusidquodmaximeplaceatfacerepossimus,"
+        + "omnisvoluptasassumendaest,omnisdolorrepellendus.Maurisdictumfacilisisaugue.Vivamusporttitorturpisacleo"
+        + ".Craspedelibero,dapibusnec,pretiumsitamet,temporquis.Etiambibendumelitegeterat.Vestibulumeratnulla,"
+        + "ullamcorpernec,rutrumnon,nonummyac,erat.Duissapiennunc,commodoet,interdumsuscipit,sollicitudinet,"
+        + "dolor.Curabitursagittishendreritante.Etiamposuerelacusquisdolor.Duisrisus.Integerimperdietlectusquisjusto"
+        + ".Integermalesuada.Nullamfauci",
+        "***Continuation***\n**[prostě server] matej377:** test\n",
+    ] == utils.text.smart_split(
+        "> **[prostě server] matej377:** Loremipsumdolorsitamet,"
+        + "consectetueradipiscingelit.Mauriselementummaurisvitaetortor.Utenimadminimveniam,"
+        + "quisnostrudexercitationullamcolaborisnisiutaliquipexeacommodoconsequat.Namliberotempore,"
+        + "cumsolutanobisesteligendioptiocumquenihilimpeditquominusidquodmaximeplaceatfacerepossimus,"
+        + "omnisvoluptasassumendaest,omnisdolorrepellendus.Praesentdapibus.Nullapulvinareleifendsem.Aliquameratvolutpat"
+        + ".Nullanonlectussednislmolestiemalesuada.Maurissuscipit,ligulasitametpharetrasemper,nibhantecursuspurus,"
+        + "velsagittisvelitmaurisvelmetus.Fusceduileo,imperdietin,aliquamsitamet,feugiateu,"
+        + "orci.Aliquaminloremsitametleoaccumsanlacinia.Pellentesquearcu.Fusceconsectetuerrisusanunc.Craspedelibero,"
+        + "dapibusnec,pretiumsitamet,temporquis.Etiamduisem,fermentumvitae,sagittisid,malesuadain,"
+        + "quam.Sedconvallismagnaeusem.Namsedtellusidmagnaelementumtincidunt.Maecenassollicitudin"
+        + ".Etiamdictumtinciduntdiam.Morbiimperdiet,maurisacauctordictum,nislligulaegestasnulla,"
+        + "etsollicitudinsempurusinlacus.Fusceconsectetuerrisusanunc.Fuscetellus.Quisqueporta.Curabiturligulasapien,"
+        + "pulvinaravestibulumquis,facilisisvelsapien.Integerimperdietlectusquisjusto.Etiamquisquam"
+        + ".Praesentvitaearcutempornequelaciniapretium.Fuscewisi.Praesentvitaearcutempornequelaciniapretium"
+        + ".Mauristinciduntsemsedarcu.Fusceconsectetuerrisusanunc.Nullanonlectussednislmolestiemalesuada.Nuncauctor"
+        + ".Aliquamiddolor.Maecenaslibero.Pellentesquepretiumlectusidturpis.Mauristinciduntsemsedarcu.Namliberotempore,"
+        + "cumsolutanobisesteligendioptiocumquenihilimpeditquominusidquodmaximeplaceatfacerepossimus,"
+        + "omnisvoluptasassumendaest,omnisdolorrepellendus.Maurisdictumfacilisisaugue.Vivamusporttitorturpisacleo"
+        + ".Craspedelibero,dapibusnec,pretiumsitamet,temporquis.Etiambibendumelitegeterat.Vestibulumeratnulla,"
+        + "ullamcorpernec,rutrumnon,nonummyac,erat.Duissapiennunc,commodoet,interdumsuscipit,sollicitudinet,"
+        + "dolor.Curabitursagittishendreritante.Etiamposuerelacusquisdolor.Duisrisus.Integerimperdietlectusquisjusto"
+        + ".Integermalesuada.Nullamfauci\n**[prostě server] matej377:** test\n",
+        mark_continuation="***Continuation***\n",
+    )
 
 
 def test_text_split_lines():
