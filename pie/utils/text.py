@@ -83,7 +83,7 @@ def smart_split(
         markdown_sanitization_success = False
 
         # check if markdown marks aren't split in half
-        markdown_marks = ["~~", "***", "**", "*", "__", "_", "```", "`"]
+        markdown_marks = ["~~", "***", "**", "*", "__", "_", "```", "`", "||"]
         while not markdown_sanitization_success:
             markdown_sanitization_success = True
             for mark in markdown_marks:
