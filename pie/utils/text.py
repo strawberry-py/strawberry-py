@@ -127,10 +127,24 @@ def smart_split(
 
         part = (str)(part.removesuffix(" "))
 
+        tmp = parts[len(parts) - 1][split_pos:].removeprefix(" ")
+
         parts.append(
-            (mark_continuation if limit > 50 else "")
-            + marks_to_add_to_start
-            + parts[len(parts) - 1][split_pos:].removeprefix(" ")
+            (
+                (
+                    (
+                        mark_continuation.rstrip()
+                        if tmp.startswith("\n")
+                        else mark_continuation
+                    )
+                    if limit > len(mark_continuation) + 20
+                    else ""
+                )
+                + (marks_to_add_to_start if len(tmp.split("\n")[0].strip()) > 0 else "")
+                if len(tmp.strip()) > 0
+                else ""
+            )
+            + tmp
         )  # mark remaining text as continuation
         parts[(len(parts) - 2)] = (
             part  # update previous part to be roughly limit chars long
