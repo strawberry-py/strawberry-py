@@ -289,7 +289,7 @@ class ACL(commands.Cog):
         if len(query):
             bot_commands = [
                 command
-                for name, command in self.bot.get_all_commands()
+                for name, command in self.bot.get_all_commands().items()
                 if query in name
             ]
         else:
