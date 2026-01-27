@@ -21,7 +21,7 @@ from pie.cli import COLOR
 
 dotenv.load_dotenv(".env")  # Reload dotenv
 
-profiler: pyinstrument.Profiler = None
+profiler: pyinstrument.Profiler | None = None
 if os.getenv("PROFILER_ENABLED", "False") == "True":
     try:
         os.environ["PROFILER_RUNNING"] = "True"
@@ -34,9 +34,9 @@ if os.getenv("PROFILER_ENABLED", "False") == "True":
 
 
 def test_dotenv() -> None:
-    if type(os.getenv("DB_STRING")) != str:
+    if not os.getenv("DB_STRING"):
         raise exceptions.DotEnvException("DB_STRING is not set.")
-    if type(os.getenv("TOKEN")) != str:
+    if not os.getenv("TOKEN"):
         raise exceptions.DotEnvException("TOKEN is not set.")
 
 
@@ -56,7 +56,7 @@ def print_versions():
     print("Using repositories:")
 
     init = Path(__file__).resolve()
-    module_dirs: Path = sorted((init.parent / "modules").glob("*"))
+    module_dirs: list[Path] = sorted((init.parent / "modules").glob("*"))
 
     dot_git_paths: Dict[str, Path] = {}
     dot_git_paths["base"] = init.parent / ".git"
@@ -65,7 +65,9 @@ def print_versions():
         if (module_dir / ".git").is_dir():
             dot_git_paths[module_dir.name] = module_dir / ".git"
 
-    longest_repo_name: int = max([len(name) for name in dot_git_paths.keys()])
+    longest_repo_name: int = max(
+        [len(name) for name in dot_git_paths.keys()], default=0
+    )
 
     def print_repository_version(
         repository_name: str,
@@ -90,7 +92,15 @@ def print_versions():
             continue
 
         with head.open("r") as handle:
-            ref_path: str = handle.readline().strip().split(" ")[1]
+            parts = handle.readline().strip().split(" ")
+            if len(parts) < 2:
+                print_repository_version(
+                    repo_name,
+                    "none, invalid .git/HEAD format",
+                    color=COLOR.yellow,
+                )
+                continue
+            ref_path: str = parts[1]
 
         ref: Path = dot_git_dir / ref_path
         if not ref.is_file():
@@ -119,17 +129,18 @@ del root_path
 
 
 async def main():
-    async with Strawberry():
-        await Strawberry().start()
-    return Strawberry().exit_code
+    bot = Strawberry()
+    async with bot:
+        await bot.start()
+    return bot.exit_code
 
 
 try:
     result = asyncio.run(main())
 except asyncio.exceptions.CancelledError:
     print("Strawberry-py process was interrupted.")
-except Exception as e:
-    print(traceback.format_exc(e))
+except Exception:
+    print(traceback.format_exc())
     result = 2
 
 if profiler:
