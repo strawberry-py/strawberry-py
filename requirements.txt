@@ -6,6 +6,6 @@ requests>=2.34.2,<3.0.0
 SQLAlchemy>=2.0.51,<2.1.0
 ring>=0.10.1,<1.0.0
 python-dateutil>=2.9.0.post0,<3.0.0
-alembic>=1.18.4,<2.0.0
+alembic>=1.18.5,<2.0.0
 pyinstrument
 python-dotenv
